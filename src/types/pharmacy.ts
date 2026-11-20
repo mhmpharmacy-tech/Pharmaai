@@ -64,7 +64,7 @@ export interface PrescriptionRiskSummary {
   moderateCount: number;
   minorCount: number;
   highAlertCount: number;
-  overallLevel: 'critical' | 'caution' | 'safe' | 'empty';
+  overallLevel: 'critical' | 'caution' | 'unverified' | 'empty';
 }
 
 export interface ScanSession {
