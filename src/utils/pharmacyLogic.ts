@@ -432,13 +432,27 @@ export function mergeScannedMedications(
 }
 
 function medicationMatchesKeywords(med: MedicationItem, keywords: string[]): boolean {
-  const haystack = normalizeDrugName(`${med.genericName} ${med.persianName} ${med.brandName ?? ''}`);
-  return keywords.some((kw) => haystack.includes(normalizeDrugName(kw)));
+  // Keep ingredient tokens distinct. "aspirin" must not match e.g. "aspirinlike"
+  // and "metformin" may still match a salt/formulation suffix.
+  const names = [med.genericName, med.persianName, med.brandName ?? '']
+    .map(normalizeDrugName)
+    .filter(Boolean);
+  return keywords.some((keyword) => {
+    const term = normalizeDrugName(keyword);
+    if (!term) return false;
+    return names.some((name) =>
+      name === term ||
+      name.startsWith(`${term} `) ||
+      name.endsWith(` ${term}`) ||
+      name.includes(` ${term} `)
+    );
+  });
 }
 
 export function evaluateLocalInteractions(medications: MedicationItem[]): DrugInteraction[] {
   const found: DrugInteraction[] = [];
-  const seenPairs = new Set<string>();
+  // Review every matching clinical rule; the downstream merge keeps the highest
+  // severity for each pair rather than stopping at the first matching rule.
 
   for (let i = 0; i < medications.length; i++) {
     for (let j = i + 1; j < medications.length; j++) {
@@ -456,8 +470,7 @@ export function evaluateLocalInteractions(medications: MedicationItem[]): DrugIn
             .sort()
             .join('::');
 
-          if (!seenPairs.has(pairKey)) {
-            seenPairs.add(pairKey);
+          if (pairKey) {
             found.push({
               id: `${rule.id}-${pairKey}`,
               drugA: `${med1.persianName} (${med1.genericName})`,
@@ -560,7 +573,8 @@ export function summarizePrescriptionRisk(
 
   const highAlertCount = medications.filter((m) => m.safety.highAlert).length;
 
-  let overallLevel: PrescriptionRiskSummary['overallLevel'] = 'safe';
+  // A sparse ruleset and AI responses cannot establish the absence of risk.
+  let overallLevel: PrescriptionRiskSummary['overallLevel'] = 'unverified';
   if (majorCount > 0) {
     overallLevel = 'critical';
   } else if (moderateCount > 0 || highAlertCount > 0) {
@@ -661,7 +675,7 @@ export function buildCounselingText(
       lines.push(`- [${label}] ${item.drugA} + ${item.drugB}: ${item.management}`);
     });
   } else {
-    lines.push('وضعیت تداخل‌ها: تداخل بالینی شدید یا متوسط بین اقلام این نسخه شناسایی نشد.');
+    lines.push('بررسی تداخل‌ها ناقص است: در قواعد محدود فعلی موردی گزارش نشد؛ این نتیجه به معنی ایمن بودن ترکیب یا نبود تداخل نیست. بازبینی داروساز ضروری است.');
   }
 
   return lines.join('\n');
