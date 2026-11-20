@@ -154,12 +154,12 @@ export function PrescriptionBasket({
               ? 'border-red-200 bg-red-50/80 text-red-900'
               : riskSummary.overallLevel === 'caution'
                 ? 'border-amber-200 bg-amber-50/80 text-amber-950'
-                : 'border-emerald-200 bg-emerald-50/70 text-emerald-950'
+                : 'border-slate-200 bg-slate-50/80 text-slate-900'
           }`}
         >
           <div className="flex items-start gap-2.5">
-            {riskSummary.overallLevel === 'safe' ? (
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden="true" />
+            {riskSummary.overallLevel === 'unverified' ? (
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-slate-600" aria-hidden="true" />
             ) : (
               <AlertTriangle
                 className={`mt-0.5 h-5 w-5 shrink-0 ${
@@ -174,7 +174,7 @@ export function PrescriptionBasket({
                   ? `هشدار تداخل شدید: ${formatPersianDigits(riskSummary.majorCount)} تداخل پرخطر نیازمند مداخله داروساز`
                   : riskSummary.overallLevel === 'caution'
                     ? `نیازمند احتیاط بالینی: ${formatPersianDigits(riskSummary.moderateCount)} تداخل متوسط یا داروی پرخطر`
-                    : 'تداخل شدید یا متوسطی میان داروهای این نسخه مشاهده نشد'}
+                    : 'غربالگری محدود است؛ نبود هشدار به معنی نبود تداخل یا تأیید ایمنی نسخه نیست'}
               </p>
               {clinicalSummary && (
                 <p className="mt-0.5 opacity-90">{clinicalSummary}</p>
