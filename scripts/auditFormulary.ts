@@ -5,6 +5,7 @@
  */
 import { LOCAL_DRUG_FORMULARY } from '../src/data/localDrugFormulary';
 import { CLINICAL_EVIDENCE_NOTES, getClinicalEvidenceForDrug } from '../src/data/clinicalEvidence';
+import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from '../src/data/iranReference';
 
 type Row = (typeof LOCAL_DRUG_FORMULARY)[number];
 
@@ -44,6 +45,10 @@ for (const record of LOCAL_DRUG_FORMULARY) {
 const report = {
   meaning: 'Data completeness only; NO drug dose has been approved by this audit',
   totalFormularyRecords: LOCAL_DRUG_FORMULARY.length,
+  historicalIranianIndexHeadings: IRAN_REFERENCE_INDEX.length,
+  historicalSourceYear: IRAN_INDEX_PROVENANCE.archiveYear,
+  historicalHeadingsAreClinicalMonographs: false,
+  historicalHeadingsVerifiedForCurrentMarket: IRAN_INDEX_PROVENANCE.verifiedForCurrentMarket,
   distinctGenericNamesAsSpelled: genericNames.size,
   recordsWithProvisionalSourceNotes: sourceNotes,
   totalProvisionalSourceNotes: CLINICAL_EVIDENCE_NOTES.length,
@@ -55,6 +60,10 @@ const report = {
 };
 console.log(JSON.stringify(report, null, 2));
 
+if (IRAN_REFERENCE_INDEX.length < 790) {
+  console.error('Iran historical reference index unexpectedly incomplete.');
+  process.exitCode = 1;
+}
 if (duplicates.length || incomplete.length || cachedFromAi) {
   console.error('Formulary static catalog audit failed. Fix data issues before merge.');
   process.exitCode = 1;
