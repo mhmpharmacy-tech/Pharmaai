@@ -87,14 +87,25 @@ const LOCAL_INTERACTION_RULES: LocalInteractionRule[] = [
       'جایگزینی امپرازول با پنتوپرازول یا فاموتیدین با هماهنگی پزشک معالج شدیداً توصیه می‌شود.',
   },
   {
-    id: 'rule-statin-macrolide',
-    groupA: ['atorvastatin', 'آتورواستاتین', 'simvastatin', 'سیمواستاتین', 'lovastatin', 'لواستاتین'],
-    groupB: ['azithromycin', 'آزیترومایسین', 'clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
+    id: 'rule-simva-lova-clarithro-erythro',
+    groupA: ['simvastatin', 'سیمواستاتین', 'lovastatin', 'لواستاتین'],
+    groupB: ['clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
+    severity: 'major',
+    mechanism: 'مهار CYP3A4 توسط کلاریترومایسین و اریترومایسین و افزایش غلظت سیمواستاتین/لواستاتین',
+    clinicalEffect: 'افزایش خطر میوپاتی شدید و رابدومیولیز',
+    management: 'هم‌زمانی سیمواستاتین یا لواستاتین با کلاریترومایسین منع مصرف دارد. برای اریترومایسین نیز از هم‌زمانی اجتناب شود؛ انتخاب آنتی‌بیوتیک جایگزین یا وقفه درمان استاتین فقط با ارزیابی پزشک/داروساز.',
+    // Evidence: NHS SPS 2024, https://sps.nhs.uk/articles/managing-interactions-between-macrolides-and-statins/
+    // DailyMed clarithromycin label: https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=de33ba3a-9df1-4076-8d5f-b603d2698096
+  },
+  {
+    id: 'rule-atorva-clarithro-erythro',
+    groupA: ['atorvastatin', 'آتورواستاتین'],
+    groupB: ['clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
     severity: 'moderate',
-    mechanism: 'مهار متابولیسم کبدی CYP3A4 (به‌ویژه با کلاریترومایسین) و افزایش فراهمی زیستی استاتین در عضلات',
-    clinicalEffect: 'افزایش خطر میوپاتی، دردهای عضلانی شدید و رابدومیولیز همراه با افزایش آنزیم CK',
-    management:
-      'با کلاریترومایسین قطع موقت استاتین طی دوره آنتی‌بیوتیک توصیه می‌شود. با آزیترومایسین ریسک کمتر است اما در صورت بروز درد یا ضعف عضلانی غیرمعمول و ادرار تیره، بیمار باید فوراً مراجعه کند.',
+    mechanism: 'مهار CYP3A4 و افزایش مواجهه سیستمیک با آتورواستاتین',
+    clinicalEffect: 'افزایش خطر علائم عضلانی و میوپاتی',
+    management: 'در صورت امکان آنتی‌بیوتیک کم‌تداخل‌تر انتخاب شود؛ تصمیم درباره قطع موقت یا تعدیل دوز استاتین با پزشک/داروساز است. آزیترومایسین مهارکننده مهم CYP3A4 نیست و این قاعده برای آن اعمال نمی‌شود.',
+    // Evidence: NHS SPS 2024, https://sps.nhs.uk/articles/managing-interactions-between-macrolides-and-statins/
   },
   {
     id: 'rule-arb-acei-nsaid',
@@ -217,16 +228,6 @@ const LOCAL_INTERACTION_RULES: LocalInteractionRule[] = [
     clinicalEffect: 'افزایش ۲ تا ۴ برابری ریسک خونریزی فوقانی گوارشی',
     management:
       'استامینوفن مسکن ایمن‌تری است؛ در صورت نیاز به NSAID یا آسپرین طولانی‌مدت، افزودن پنتوپرازول جهت محافظت معده بررسی شود.',
-  },
-  {
-    id: 'rule-metformin-atorvastatin-check',
-    groupA: ['atorvastatin', 'آتورواستاتین'],
-    groupB: ['aspirin', 'آسپرین'],
-    severity: 'minor',
-    mechanism: 'فاقد تداخل فارماکوکینتیک بالینی قابل‌توجه؛ هر دو در پروتکل پیشگیری قلبی-عروقی هم‌زمان تجویز می‌شوند',
-    clinicalEffect: 'تحمل‌پذیری مناسب؛ تنها توجه به علائم گوارشی آسپرین و درد عضلانی استاتین کافی است',
-    management:
-      'ادامه رژیم مطابق نسخه؛ آتورواستاتین می‌تواند هر ساعت شبانه‌روز (ترجیحاً عصر/شب) و آسپرین با غذا مصرف شود.',
   },
   {
     id: 'rule-doac-nsaid-antiplatelet',
@@ -432,13 +433,27 @@ export function mergeScannedMedications(
 }
 
 function medicationMatchesKeywords(med: MedicationItem, keywords: string[]): boolean {
-  const haystack = normalizeDrugName(`${med.genericName} ${med.persianName} ${med.brandName ?? ''}`);
-  return keywords.some((kw) => haystack.includes(normalizeDrugName(kw)));
+  // Keep ingredient tokens distinct. "aspirin" must not match e.g. "aspirinlike"
+  // and "metformin" may still match a salt/formulation suffix.
+  const names = [med.genericName, med.persianName, med.brandName ?? '']
+    .map(normalizeDrugName)
+    .filter(Boolean);
+  return keywords.some((keyword) => {
+    const term = normalizeDrugName(keyword);
+    if (!term) return false;
+    return names.some((name) =>
+      name === term ||
+      name.startsWith(`${term} `) ||
+      name.endsWith(` ${term}`) ||
+      name.includes(` ${term} `)
+    );
+  });
 }
 
 export function evaluateLocalInteractions(medications: MedicationItem[]): DrugInteraction[] {
   const found: DrugInteraction[] = [];
-  const seenPairs = new Set<string>();
+  // Review every matching clinical rule; the downstream merge keeps the highest
+  // severity for each pair rather than stopping at the first matching rule.
 
   for (let i = 0; i < medications.length; i++) {
     for (let j = i + 1; j < medications.length; j++) {
@@ -456,8 +471,7 @@ export function evaluateLocalInteractions(medications: MedicationItem[]): DrugIn
             .sort()
             .join('::');
 
-          if (!seenPairs.has(pairKey)) {
-            seenPairs.add(pairKey);
+          if (pairKey) {
             found.push({
               id: `${rule.id}-${pairKey}`,
               drugA: `${med1.persianName} (${med1.genericName})`,
@@ -560,7 +574,8 @@ export function summarizePrescriptionRisk(
 
   const highAlertCount = medications.filter((m) => m.safety.highAlert).length;
 
-  let overallLevel: PrescriptionRiskSummary['overallLevel'] = 'safe';
+  // A sparse ruleset and AI responses cannot establish the absence of risk.
+  let overallLevel: PrescriptionRiskSummary['overallLevel'] = 'unverified';
   if (majorCount > 0) {
     overallLevel = 'critical';
   } else if (moderateCount > 0 || highAlertCount > 0) {
@@ -661,7 +676,7 @@ export function buildCounselingText(
       lines.push(`- [${label}] ${item.drugA} + ${item.drugB}: ${item.management}`);
     });
   } else {
-    lines.push('وضعیت تداخل‌ها: تداخل بالینی شدید یا متوسط بین اقلام این نسخه شناسایی نشد.');
+    lines.push('بررسی تداخل‌ها ناقص است: در قواعد محدود فعلی موردی گزارش نشد؛ این نتیجه به معنی ایمن بودن ترکیب یا نبود تداخل نیست. بازبینی داروساز ضروری است.');
   }
 
   return lines.join('\n');

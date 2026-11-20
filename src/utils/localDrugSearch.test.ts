@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { FORMULARY_CATEGORIES, LOCAL_DRUG_FORMULARY } from '../data/localDrugFormulary';
+import { cacheMedicationsInLocalDb } from './localDrugDb';
 import {
   countFormularyByCategory,
   findBestLocalDrugMatch,
@@ -102,4 +103,16 @@ test('inferCategoryFromClass categorizes Persian therapeutic classes accurately 
   assert.equal(inferCategoryFromClass('گشادکننده سریع برونش (آسم)'), 'respiratory_allergy');
   assert.equal(inferCategoryFromClass('آلفابلوکر انتخابی پروستات'), 'urology_derm_eye');
   assert.equal(inferCategoryFromClass('ضدافسردگی و ضداضطراب (SSRI)'), 'neuro_psych');
+});
+
+test('unreviewed AI data cannot enter the pharmacist formulary through legacy cache API', async () => {
+  const oldCatalog = LOCAL_DRUG_FORMULARY.slice(0, 2);
+  const fictional = {
+    ...oldCatalog[0],
+    id: 'ai-generated-nonexistent',
+    genericName: 'NotARealMedication',
+  };
+  const result = await cacheMedicationsInLocalDb([fictional], oldCatalog);
+  assert.equal(result, oldCatalog);
+  assert.equal(result.some((x) => x.genericName === 'NotARealMedication'), false);
 });

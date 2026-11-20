@@ -121,15 +121,15 @@ export function InteractionMatrixView({
           </p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50/60 px-6 py-10 text-center">
-          <ShieldCheck className="h-9 w-9 text-emerald-700" aria-hidden="true" />
-          <p className="mt-3 text-sm font-bold text-emerald-950">
+        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
+          <AlertTriangle className="h-9 w-9 text-slate-600" aria-hidden="true" />
+          <p className="mt-3 text-sm font-bold text-slate-900">
             {severityFilter === 'all'
-              ? 'تداخل بالینی شناخته‌شده‌ای میان این داروها ثبت نشد'
+              ? 'در بررسی محدود فعلی تداخلی گزارش نشد؛ ایمنی ترکیب تأیید نشده است'
               : 'موردی با این درجه شدت در نسخه فعلی وجود ندارد'}
           </p>
-          <p className="mt-1 text-xs text-emerald-900/80">
-            برای اطمینان بیشتر در داروهای تخصصی می‌توانید «تحلیل مجدد تداخل‌ها با هوش مصنوعی» را اجرا کنید.
+          <p className="mt-1 text-xs text-slate-700">
+            نتیجهٔ خالی به معنی عدم وجود تداخل نیست؛ بازبینی بالینی داروساز و مرجع جامع ضروری است. تحلیل هوش مصنوعی نیز جایگزین آن نیست.
           </p>
         </div>
       ) : (

@@ -41,6 +41,8 @@ export interface MedicationItem {
   dosageForm: string;
   therapeuticClass: string;
   sourceType: SourceType;
+  /** Records are unreviewed until a separate audited approval process exists. */
+  verificationStatus?: 'unverified-ai' | 'unverified-legacy';
   customDosingSchedule?: string;
   dosing: MedicationDosing;
   safety: MedicationSafety;
@@ -64,7 +66,7 @@ export interface PrescriptionRiskSummary {
   moderateCount: number;
   minorCount: number;
   highAlertCount: number;
-  overallLevel: 'critical' | 'caution' | 'safe' | 'empty';
+  overallLevel: 'critical' | 'caution' | 'unverified' | 'empty';
 }
 
 export interface ScanSession {
