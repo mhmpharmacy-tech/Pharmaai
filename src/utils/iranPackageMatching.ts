@@ -146,7 +146,23 @@ export function matchIranianPackage(
   const brands = catalog.filter((p) => brandMatches(observed.brand!, p.brand));
   if (brands.length === 0) return result('not-found', ['برند در نمونه‌های محدود محصولات ایرانی ثبت نشده؛ نبود رکورد به معنی جعلی‌بودن نیست.']);
 
-  const exactStrengths = brands.filter((p) => strengthMatches(observed.strength!, p.strengthLabel));
+  // A label such as "Zaxime 200" cannot match the 400-mg product even when
+  // the model separately (and inconsistently) reads "400 mg" from the image.
+  const brandsWithConsistentSuffix = brands.filter((p) => {
+    const normalizedBrand = normalizePackageText(observed.brand!);
+    const normalizedProductBrand = normalizePackageText(p.brand);
+    const remainder = normalizedBrand.slice(normalizedProductBrand.length).trim();
+    const suffixStrength = remainder.match(/^(\d+(?:\.\d+)?)$/);
+    if (!suffixStrength) return true;
+    return normalizedStrength(p.strengthLabel).startsWith(suffixStrength[1] + 'mg')
+      || normalizedStrength(p.strengthLabel).startsWith(suffixStrength[1] + 'iu')
+      || normalizedStrength(p.strengthLabel).startsWith(suffixStrength[1] + 'mcg');
+  });
+  if (!brandsWithConsistentSuffix.length) {
+    return result('conflict', ['عدد درج‌شده در نام تجاری با قدرت ثبت‌شده روی بسته مغایرت دارد.']);
+  }
+
+  const exactStrengths = brandsWithConsistentSuffix.filter((p) => strengthMatches(observed.strength!, p.strengthLabel));
   if (!exactStrengths.length) {
     return result('conflict', ['قدرت خوانده‌شده با رکوردهای برند تطبیق ندارد؛ امکان اشتباه OCR یا تفاوت فرآورده وجود دارد.']);
   }
