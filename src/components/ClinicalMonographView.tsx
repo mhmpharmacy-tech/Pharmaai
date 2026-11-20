@@ -10,6 +10,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import type { DrugInteraction, MedicationItem } from '../types/pharmacy';
+import { EVIDENCE_REFERENCES, getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
 import {
   formatPersianDigits,
   getInteractionsForMedication,
@@ -85,6 +86,7 @@ export function ClinicalMonographView({
   }
 
   const relatedInteractions = getInteractionsForMedication(medication, allInteractions);
+  const evidenceNotes = getClinicalEvidenceForDrug(medication.genericName);
   const showDosing = section === 'all' || section === 'dosing';
   const showInteractions = section === 'all' || section === 'interactions';
   const showSafety = section === 'all' || section === 'safety';
@@ -271,6 +273,51 @@ export function ClinicalMonographView({
                 </dd>
               </div>
             </dl>
+          </section>
+        )}
+
+        {/* Pharmacist-reviewed citation queue: never silently rewrite dosing fields. */}
+        {showDosing && (
+          <section aria-labelledby="heading-evidence" className="border-t border-slate-100 pt-7">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 id="heading-evidence" className="text-base font-bold text-slate-900">
+                نکات مرجع و بررسی علمی
+              </h3>
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                در انتظار تأیید داروساز
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              نکات زیر خلاصه‌های مستقل و ارجاع‌دار از منابع آموزشی هستند؛ تأیید اعتبار دوزهای بالای صفحه محسوب نمی‌شوند.
+              قبل از تصمیم درمانی، برچسب به‌روز دارو، وضعیت بیمار و راهنمای معتبر بررسی شود.
+            </p>
+            {evidenceNotes.length > 0 ? (
+              <div className="mt-4 space-y-3">
+                {evidenceNotes.map((note) => (
+                  <div key={note.id} className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-4">
+                    <h4 className="text-sm font-bold text-slate-900">{note.topic}</h4>
+                    <p className="mt-2 text-sm leading-7 text-slate-800">{note.clinicalSummary}</p>
+                    <p className="mt-2 text-xs leading-6 text-amber-950">
+                      <strong>محدودیت بالینی: </strong>{note.boundaries}
+                    </p>
+                    <ul className="mt-3 space-y-1 border-t border-amber-200/70 pt-2 text-xs leading-6 text-slate-600">
+                      {note.references.map((sourceId) => {
+                        const source = EVIDENCE_REFERENCES[sourceId];
+                        return (
+                          <li key={sourceId}>
+                            {source.book}، ویرایش {source.edition} ({source.year}) — {source.location}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs leading-6 text-slate-600">
+                برای این دارو هنوز یادداشت منبع‌دار در مجموعه بازبینی جدید ثبت نشده است؛ نبود یادداشت به معنی تأیید اطلاعات فعلی نیست.
+              </p>
+            )}
           </section>
         )}
 
