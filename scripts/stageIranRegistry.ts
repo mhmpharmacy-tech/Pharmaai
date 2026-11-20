@@ -29,9 +29,14 @@ const input=option('input');
 const sourceUrl=option('source');
 const datasetRelease=option('release');
 const usagePermissionReference=option('permission');
+const access=option('access') || 'authorized-export';
+const publicRecordEvidenceId=option('evidence');
 const write=process.argv.includes('--write');
-if(!input||!sourceUrl||!datasetRelease||!usagePermissionReference) {
-  console.error('Required --input=FILE --source=https://[official IFDA/TTAC] --release=VERSION --permission=REFERENCE [--write]');
+if(!input||!sourceUrl||!datasetRelease||
+  !['authorized-export','public-manual-review'].includes(access)||
+  (access==='authorized-export'&&!usagePermissionReference)||
+  (access==='public-manual-review'&&!publicRecordEvidenceId)) {
+  console.error('Use --input=FILE --source=https://[official IFDA/TTAC] --release=VERSION --access=authorized-export --permission=REFERENCE OR --access=public-manual-review --evidence=CAPTURE-ID [--write]');
   process.exit(2);
 }
 const raw=fs.readFileSync(input);
@@ -53,7 +58,9 @@ const officialSource:RegistryBatchProvenance={
   datasetRelease,
   downloadedAt:new Date().toISOString(),
   rawSourceSha256:createHash('sha256').update(raw).digest('hex'),
+  accessBasis:access as 'authorized-export' | 'public-manual-review',
   usagePermissionReference,
+  publicRecordEvidenceId:access==='public-manual-review'?publicRecordEvidenceId:undefined,
 };
 const result=stageIranRegistry(records,officialSource);
 console.log(JSON.stringify({
