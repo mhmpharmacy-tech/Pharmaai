@@ -21,7 +21,7 @@ The preexisting **143 clinical records**, **809 historical headings** and **54 m
 
 ## Authorized registry-export workflow
 
-1. Obtain the current source export **and written permission for the intended usage** from IFDA/TTAC or an authorized party. Retain the original file, version and time of acquisition.
+1. For **manual review of publicly accessible official listings**, record the URL, date, and capture/evidence ID; no invented commercial contract is needed to stage manually transcribed facts. For **bulk export/API or redistribution**, document the provider's permitted access/terms or authorization as applicable. Retain the source, date and SHA-256.
 2. If the source is XLS/XLSX, export a UTF-8 CSV with precisely named columns or generate an array of JSON objects. The importer intentionally does not parse proprietary Excel formatting or infer ambiguous Persian column headings.
 3. Fields: `irc`, `gtin` (optional during staging), `genericName`, `brandName`, `manufacturerName`, `strength`, `dosageForm`, `route`, `regulatoryStatus` (active/suspended/cancelled/unknown). **Do not substitute a label UID or authentication code for IRC.**
 4. Example invocation:
@@ -30,11 +30,12 @@ The preexisting **143 clinical records**, **809 historical headings** and **54 m
 bun run registry:stage -- --input=/secure/data/official-export.csv \
   --source=https://irc.fda.gov.ir/Home/HomePage \
   --release=REPLACE_WITH_ACTUAL_RELEASE \
-  --permission=REPLACE_WITH_PERMISSION_RECORD \
+  --access=authorized-export \
+  --permission=REPLACE_WITH_ACTUAL_EXPORT_PERMISSION \
   --write
 ```
 
-5. Inspect all rejected and conflicting entries. Verify the original export really came from the source stated, that usage is authorized, and that active authorizations have not subsequently changed.
+5. For a manual public record use `--access=public-manual-review --evidence=ACTUAL_RECORD_CAPTURE_ID` instead of `--permission`. In both modes inspect rejected records and independently verify that the contents match their cited official pages and have not become stale.
 6. Pharmacist and regulatory reviewer explicitly approve each product mapping before a separate controlled publish/deploy mechanism is implemented. **Current importer has no approval or promotion action**. It would be unsafe to auto-declare the import authoritative.
 
 ## Rights-cleared photo ingestion
@@ -43,7 +44,7 @@ For each *real* product obtain photos of the actual front and back, and optional
 
 - Registry-confirmed product IRC, source product ID, form/strength/manufacturer, exact package revision.
 - Captured date, asset path, SHA-256, each view (front/back/etc.).
-- Photographer/rightsholder and permission/consent evidence for reference library and evaluation; check licensing for commercially sourced photographs.
+- For your **own photos**, use `pharmacist-original-photo`, identify yourself as the photographer and keep a simple authorship/use-attestation record ID. A separate fictitious manufacturer license is not required for first-party photo staging. For third-party images, record the actual rightsholder and permitted reuse.
 - Independent reviewers A and B and whether the image is free from names, prescriptions, patient labels, background patient records or other private information.
 - Verify that image and product belong to the same package revision; a different generic of the same strength must **not** be used as a substitute reference.
 
@@ -74,7 +75,28 @@ This tests the **model-text-to-catalog reconciliation pipeline** given *saved re
 
 ## What remains external
 
-- Obtain actual IFDA/TTAC data and explicit bulk-data permission; the staging system cannot generate or license either.
-- Obtain or photograph original Iranian medicine packages with written photo permissions and a separate data-custody policy.
+- Enter verified facts manually from public official listings now, retaining the page URL/date and evidence ID. A separate bulk export or API remains subject to its own access conditions; the importer does not automatically provide it.
+- Start with original photographs taken in the pharmacy and a documented photographer attestation. For externally sourced photos, verify rights and define data custody.
 - Run independently supervised real-world labeling and scanner evaluation; current fixtures verify *software behavior*, not sensitivity/specificity on pharmacy photos.
 - Verify patient image retention, authentication, encryption, audit, server abuse protection, and clinical pharmacist approval prior to clinical production use.
+
+## Operational fast path for a pharmacist
+
+The two routes below are distinct and intentionally avoid holding up first-party work:
+
+**Manual registration from the public Iranian official listing**: transcribe a record you personally checked; save the actual page/capture reference and date in a private local evidence log. Use `--access=public-manual-review --evidence=CAPTURE_REFERENCE`. This stages an *unapproved candidate*, not a live authorization claim and not a license to scrape a whole database.
+
+**Original box photos from pharmacy inventory**: photograph front/back under neutral lighting with no patients, prescriptions, personal details or exposed private stock/account information. Use `pharmacist-original-photo` in the photo manifest and record your own first-party authorship attestation. A second independent reviewer is still recommended and currently required for promoting the item into an evaluation-ready dataset, to prevent incorrect strength or brand labels. Third-party image rights differ from rights in your own photography.
+
+### Examples
+```bash
+bun run registry:stage -- \
+  --input=private-data/observed-official-records.csv \
+  --source=https://irc.fda.gov.ir/Home/HomePage \
+  --release=record-checked-2026-11-21 \
+  --access=public-manual-review \
+  --evidence=private-capture-log-2026-11-21 \
+  --write
+```
+
+This is for records genuinely checked on the public official source; entering an official URL does not itself prove that a record was verified. Never put the internal capture log, photo originals, patient data, or manufacturer contracts in a public repository.
