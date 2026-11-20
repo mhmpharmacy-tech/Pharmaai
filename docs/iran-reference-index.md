@@ -16,7 +16,7 @@ instructions, medical claims and monograph paragraphs were **not copied**.
 - **143 existing clinical-formulary records:** fields for strengths, doses,
   contraindications and counseling. These are **not necessarily clinically
   verified**, and their existing provenance remains as before.
-- **807 deduplicated historical book headings:** searchable as Persian/
+- **809 deduplicated historical book headings:** searchable as Persian/
   English archival *index entries only*, with a PDF page reference.
   These do not contain any dosing or product approval data.
 
