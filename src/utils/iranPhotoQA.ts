@@ -4,7 +4,7 @@
  */
 export type PhotoView = 'front' | 'back' | 'blister' | 'bottle' | 'ampoule' | 'authenticity-label';
 export interface PhotoRights {
-  basis: 'original-photo-with-consent' | 'written-manufacturer-license';
+  basis: 'pharmacist-original-photo' | 'original-photo-with-consent' | 'written-manufacturer-license';
   rightsHolder: string;
   authorizedUse: 'clinical-reference-and-evaluation' | 'clinical-reference-only';
   permissionEvidenceId: string;
@@ -65,10 +65,13 @@ export function auditIranPhotoManifest(
     reasons.push('تأیید مستقل توسط دو بازبین متمایز لازم است.');
 
   const rights=entry.rights;
-  if(!rights || !['original-photo-with-consent','written-manufacturer-license'].includes(rights.basis))
-    reasons.push('مبنای حقوقی تصویر ثبت نشده است.');
+  if(!rights || !['pharmacist-original-photo','original-photo-with-consent','written-manufacturer-license'].includes(rights.basis))
+    reasons.push('مبنای تهیه یا استفاده از تصویر ثبت نشده است.');
+  // First-party pharmacy photography needs only a recorded authorship/use
+  // attestation, not a fictional written agreement with the manufacturer.
+  // Third-party photos still require documented permission for the intended use.
   if(!rights?.rightsHolder?.trim() || !rights?.permissionEvidenceId?.trim())
-    reasons.push('مالک حقوق و مدرک اجازه استفاده مشخص نیست.');
+    reasons.push('عکاس/مالک عکس و شناسه ثبت رضایت یا خوداظهاری مالک مشخص نیست.');
   if(rights?.authorizedUse!=='clinical-reference-and-evaluation')
     reasons.push('مجوز تصویر باید استفاده برای کتابخانه مرجع و ارزیابی را پوشش دهد.');
   if(!DATE.test(rights?.permissionDate||'') || rights.permissionDate>now)
