@@ -46,6 +46,11 @@ for (const record of LOCAL_DRUG_FORMULARY) {
 const report = {
   meaning: 'Data completeness only; NO drug dose has been approved by this audit',
   totalFormularyRecords: LOCAL_DRUG_FORMULARY.length,
+  ifdaTTACVerifiedRegistryRows: 0,
+  licensedAndReviewedIranianPackagePhotos: 0,
+  realWorldVisualRecognitionAccuracyMeasured: false,
+  registryIngestionCapability: 'authorized export -> staged pending review only',
+  photoValidationCapability: 'rights + privacy + identity + two independent reviews',
   iraniManufacturerProductExamples: IRAN_MARKET_PRODUCT_EXEMPLARS.length,
   iraniManufacturerCompanies: IRAN_MANUFACTURERS.length,
   productExamplesWithoutIRC: IRAN_MARKET_PRODUCT_EXEMPLARS.filter((p) => p.registration.status === 'not-verified').length,
