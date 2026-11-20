@@ -4,7 +4,7 @@ import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from './index';
 import { normalizeSearchText } from '../../utils/localDrugSearch';
 
 test('historical source contains the expected number of deduplicated reference headings', () => {
-  assert.equal(IRAN_REFERENCE_INDEX.length, 807);
+  assert.equal(IRAN_REFERENCE_INDEX.length, 809);
   assert.equal(IRAN_INDEX_PROVENANCE.archiveYear, 2008);
   assert.equal(IRAN_INDEX_PROVENANCE.verifiedForCurrentMarket, false);
   assert.equal(IRAN_INDEX_PROVENANCE.approvedClinicalMonographs, 0);
