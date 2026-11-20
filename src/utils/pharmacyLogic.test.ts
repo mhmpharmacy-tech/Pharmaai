@@ -302,3 +302,17 @@ test('warfarin sodium and aspirin still match the core clinical rule', () => {
   const b = makeMed({ id: 'two', persianName: 'آسپرین', genericName: 'Aspirin' });
   assert.ok(evaluateLocalInteractions([a, b]).some((x) => x.severity === 'major'));
 });
+
+test('macrolide-statin safety distinguishes clarithromycin from azithromycin', () => {
+  const simva = makeMed({ id: 's', genericName: 'Simvastatin', persianName: 'سیمواستاتین' });
+  const clarithro = makeMed({ id: 'c', genericName: 'Clarithromycin', persianName: 'کلاریترومایسین' });
+  const azithro = makeMed({ id: 'a', genericName: 'Azithromycin', persianName: 'آزیترومایسین' });
+  assert.ok(evaluateLocalInteractions([simva, clarithro]).some((x) => x.severity === 'major'));
+  assert.equal(evaluateLocalInteractions([simva, azithro]).length, 0);
+});
+
+test('routine aspirin plus atorvastatin does not generate a fabricated minor interaction', () => {
+  const asa = makeMed({ id: 'a', genericName: 'Aspirin', persianName: 'آسپرین' });
+  const atorva = makeMed({ id: 's', genericName: 'Atorvastatin', persianName: 'آتورواستاتین' });
+  assert.equal(evaluateLocalInteractions([asa, atorva]).length, 0);
+});
