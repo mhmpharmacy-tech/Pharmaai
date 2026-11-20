@@ -10,7 +10,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import type { DrugInteraction, MedicationItem } from '../types/pharmacy';
-import { EVIDENCE_REFERENCES, getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
+import { EVIDENCE_REFERENCES, EXTERNAL_REFERENCE_PORTALS, getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
 import {
   formatPersianDigits,
   getInteractionsForMedication,
@@ -305,7 +305,13 @@ export function ClinicalMonographView({
                         const source = EVIDENCE_REFERENCES[sourceId];
                         return (
                           <li key={sourceId}>
-                            {source.book}، ویرایش {source.edition} ({source.year}) — {source.location}
+                            {source.url ? (
+                              <a href={source.url} target="_blank" rel="noopener noreferrer"
+                                className="font-semibold text-teal-800 underline underline-offset-2">
+                                {source.book}
+                              </a>
+                            ) : source.book}
+                            ، ویرایش {source.edition} ({source.year}) — {source.location}
                           </li>
                         );
                       })}
@@ -318,6 +324,23 @@ export function ClinicalMonographView({
                 برای این دارو هنوز یادداشت منبع‌دار در مجموعه بازبینی جدید ثبت نشده است؛ نبود یادداشت به معنی تأیید اطلاعات فعلی نیست.
               </p>
             )}
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-sm font-bold text-slate-900">مسیرهای بازبینی مستقل داروساز</p>
+              <p className="mt-1 text-xs leading-6 text-slate-600">
+                پیوندهای زیر فقط برای بررسی دستی هستند؛ وجود آن‌ها به معنای تطبیق یا تأیید محتوای این دارو با منبع نیست.
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                {EXTERNAL_REFERENCE_PORTALS.map((portal) => (
+                  <li key={portal.name}>
+                    <a href={portal.url} target="_blank" rel="noopener noreferrer"
+                      title={portal.purpose}
+                      className="text-xs font-semibold text-teal-800 underline underline-offset-2">
+                      {portal.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
         )}
 
