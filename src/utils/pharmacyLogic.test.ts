@@ -279,3 +279,26 @@ test('evaluateLocalInteractions detects newly added clinical rules across expand
   assert.equal(cnsRule[0].severity, 'major');
 });
 
+
+
+test('limited interaction screening never claims a prescription is clinically safe', () => {
+  const a = makeMed({ id: 'one', genericName: 'UnknownMedicineA' });
+  const b = makeMed({ id: 'two', genericName: 'UnknownMedicineB' });
+  const interactions = evaluateLocalInteractions([a, b]);
+  assert.equal(interactions.length, 0);
+  const summary = summarizePrescriptionRisk([a, b], interactions);
+  assert.equal(summary.overallLevel, 'unverified');
+  assert.match(buildCounselingText([a, b], interactions), /ناقص/);
+});
+
+test('ingredient matching excludes substrings that could fabricate a drug interaction', () => {
+  const a = makeMed({ id: 'one', persianName: 'DrugA', genericName: 'WarfarinlikeCompound' });
+  const b = makeMed({ id: 'two', persianName: 'DrugB', genericName: 'AspirinlikeCompound' });
+  assert.equal(evaluateLocalInteractions([a, b]).length, 0);
+});
+
+test('warfarin sodium and aspirin still match the core clinical rule', () => {
+  const a = makeMed({ id: 'one', persianName: 'وارفارین', genericName: 'Warfarin Sodium' });
+  const b = makeMed({ id: 'two', persianName: 'آسپرین', genericName: 'Aspirin' });
+  assert.ok(evaluateLocalInteractions([a, b]).some((x) => x.severity === 'major'));
+});
