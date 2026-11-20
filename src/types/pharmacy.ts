@@ -41,6 +41,8 @@ export interface MedicationItem {
   dosageForm: string;
   therapeuticClass: string;
   sourceType: SourceType;
+  /** Records are unreviewed until a separate audited approval process exists. */
+  verificationStatus?: 'unverified-ai' | 'unverified-legacy';
   customDosingSchedule?: string;
   dosing: MedicationDosing;
   safety: MedicationSafety;
