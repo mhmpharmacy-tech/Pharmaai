@@ -88,3 +88,38 @@ separate, careful migration to a quarantine/review workflow.
 **Clinical release gate:** These notes are only educational/contextual until
 individually reviewed against current sources and tested with clinical cases.
 Do not deploy this draft as a validated medical decision-support system.
+
+## Public-source enrichment and explicitly unlicensed portals (2026-11-21)
+
+The review index now includes a product-specific 2026 U.S. DailyMed label for
+metformin ER and a public Medscape Guideline Essentials summary of the October
+2026 ADA/EASD type-2-diabetes consensus. Links are stored per cited source and
+should be followed for checking updates. The U.S. label is **not** an Iranian
+registration, and the ER-specific directions are **not** general rules for every
+metformin formulation.
+
+Daruyab (darooyab.ir) is an **Iran-market look-up portal**, not proof that any
+particular imported brand, package, price or stock level in the existing catalog
+has been confirmed. Likewise, Medscape Drug Reference is a professional review
+portal; the project does not include a licensed Medscape data feed.
+
+UpToDate/Lexidrug content cannot be mined or republished from a subscription
+in this public repository. Its portal is an optional manual clinical review
+link, **not** a claim that monographs were independently validated there.
+
+## Safety and completeness changes
+
+- All legacy and AI-generated monograph texts visibly require pharmacist review.
+- The incomplete rule-based interaction screening returns `unverified`
+  rather than `safe` when no alarm is found.
+- Ingredient matching uses token boundaries rather than arbitrary substrings.
+- Drug removal discards stale AI interaction findings.
+- AI-generated drug records are not automatically saved to the trusted offline
+  catalog. Legacy `cachedFromAi` records are also excluded when loading.
+- Run `bun run audit:formulary` to quantify static records, ingredient names,
+  provisional notes and structural issues. Its count of human-approved records
+  is deliberately **zero**, pending a review and sign-off system.
+
+**Clinical status:** no claim that all monographs, local products, pediatric
+weight-based dosing, renal adjustments, interactions or drug availability have
+been validated. This is an inspectable foundation for the remaining review.
