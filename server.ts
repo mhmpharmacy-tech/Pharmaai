@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import { matchIranianPackage, type ObservedPackageText } from './src/utils/iranPackageMatching';
+import { ImageInputError, validateImageInput } from './src/utils/imageInput';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -293,13 +294,17 @@ async function startServer() {
   app.post('/api/analyze-image', async (req, res) => {
     try {
       const { imageBase64, mimeType, scanMode = 'auto', existingDrugNames = [] } = req.body ?? {};
-      if (!imageBase64 || typeof imageBase64 !== 'string') {
-        res.status(400).json({ error: 'تصویر معتبری برای تحلیل ارسال نشده است.' });
-        return;
+      let validatedImage;
+      try {
+        validatedImage = validateImageInput(imageBase64, mimeType);
+      } catch (error) {
+        if (error instanceof ImageInputError) {
+          res.status(400).json({ error: error.userMessage });
+          return;
+        }
+        throw error;
       }
-
-      const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-      const resolvedMime = typeof mimeType === 'string' && mimeType.startsWith('image/') ? mimeType : 'image/jpeg';
+      const { cleanBase64, mimeType: resolvedMime } = validatedImage;
 
       const modeHint =
         scanMode === 'prescription'
