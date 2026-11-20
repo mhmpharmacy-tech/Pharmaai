@@ -56,7 +56,7 @@ function normalizedStrength(value: string): string {
     .replace(/,/g, '')
     .replace(/\s+/g, '')
     .replace(/\(.*$/, '')
-    .replace(/\/g, '/');
+    .trim();
 }
 
 function strengthMatches(observed: string, catalog: string): boolean {
