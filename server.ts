@@ -194,6 +194,8 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
           m.sourceType === 'prescription' || m.sourceType === 'box' || m.sourceType === 'manual'
             ? m.sourceType
             : fallbackSource,
+        // Force the trust flag server-side; the model cannot self-approve a record.
+        verificationStatus: 'unverified-ai',
       }))
     : [];
 
