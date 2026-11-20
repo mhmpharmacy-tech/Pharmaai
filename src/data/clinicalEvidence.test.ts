@@ -45,3 +45,14 @@ test('unmatched drug has no fabricated source-backed guidance', () => {
   assert.ok(getClinicalEvidenceForDrug('Clopidogrel').length > 0);
   assert.ok(getClinicalEvidenceForDrug('Ibuprofen').length > 0);
 });
+
+test('public 2026 sources link to an exact document and never imply approval', () => {
+  const labels = getClinicalEvidenceForDrug('Metformin HCl ER');
+  assert.ok(labels.some((x) => x.id === 'metformin-er-us-label'));
+  assert.ok(labels.some((x) => x.id === 'diabetes-guideline-2026'));
+  assert.equal(
+    EVIDENCE_REFERENCES['dailymed2026-metformin-er'].url,
+    'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c568d49f-c040-4f1e-ad36-77b05ab659c3'
+  );
+  assert.ok(labels.every((x) => x.reviewStatus === 'pending-pharmacist-review'));
+});
