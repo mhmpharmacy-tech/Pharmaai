@@ -74,7 +74,7 @@ test('ground-truth benchmark detects wrong strength and hallucinated matches to 
     },
   ]);
   assert.equal(result.total,4);
-  assert.equal(result.accepted,3);
+  assert.equal(result.accepted,3,JSON.stringify(result.confusion));
   assert.equal(result.correctAccepted,1);
   assert.equal(result.incorrectAccepted,2);
   assert.equal(result.wrongStrengthAccepted,1);
