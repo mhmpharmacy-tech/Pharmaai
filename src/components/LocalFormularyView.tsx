@@ -16,6 +16,8 @@ import {
 } from '../data/localDrugFormulary';
 import { countFormularyByCategory, searchLocalFormulary } from '../utils/localDrugSearch';
 import { getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
+import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from '../data/iranReference';
+import { normalizeSearchText } from '../utils/localDrugSearch';
 import { formatPersianDigits, getMedicationKey } from '../utils/pharmacyLogic';
 import type { MedicationItem } from '../types/pharmacy';
 
@@ -37,6 +39,9 @@ export function LocalFormularyView({
   onInspectDrugMonograph,
 }: LocalFormularyViewProps) {
   const [query, setQuery] = useState('');
+  const [libraryView, setLibraryView] = useState<'clinical' | 'iran-index'>('clinical');
+  const [iranQuery, setIranQuery] = useState('');
+  const [iranVisible, setIranVisible] = useState(PAGE_SIZE);
   const [category, setCategory] = useState<FormularyCategory>('all');
   const [highAlertOnly, setHighAlertOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -44,6 +49,18 @@ export function LocalFormularyView({
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [query, category, highAlertOnly]);
+
+  useEffect(() => setIranVisible(PAGE_SIZE), [iranQuery]);
+
+  const indexedMatches = useMemo(() => {
+    const words = normalizeSearchText(iranQuery).split(' ').filter(Boolean);
+    if (!words.length) return IRAN_REFERENCE_INDEX;
+    return IRAN_REFERENCE_INDEX.filter((entry) => {
+      const normalizedHeading = normalizeSearchText(entry.heading);
+      return words.every((word) => normalizedHeading.includes(word));
+    });
+  }, [iranQuery]);
+  const indexedShown = indexedMatches.slice(0, iranVisible);
 
   const activeKeys = useMemo(
     () => new Set(activeMedications.map((m) => getMedicationKey(m))),
@@ -77,6 +94,66 @@ export function LocalFormularyView({
     [catalog]
   );
 
+  if (libraryView === 'iran-index') {
+    return (
+      <section aria-label="نمایه آرشیوی داروهای ژنریک ایران"
+        className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900">نمایه داروهای ژنریک ایران</h1>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {formatPersianDigits(IRAN_REFERENCE_INDEX.length)} عنوان استخراج‌شده از کتاب آرشیوی
+              ({formatPersianDigits(IRAN_INDEX_PROVENANCE.archiveYear)} میلادی)
+            </p>
+          </div>
+          <button type="button" onClick={() => setLibraryView('clinical')}
+            className="min-h-[40px] rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50">
+            بازگشت به مونوگراف‌های دارویی ({formatPersianDigits(catalog.length)})
+          </button>
+        </div>
+        <div role="note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-950">
+          این بخش فقط فهرست نام‌های موجود در یک کتاب قدیمی است؛ دوز، شکل دارویی، مجوز فروش فعلی،
+          موجودی و ایمنی هیچ‌یک از این مدخل‌ها تأیید نشده‌اند. از این نمایه نباید برای تجویز، محاسبه دوز
+          یا بررسی تداخل استفاده شود. برای اطلاعات بالینی از بخش مونوگراف‌های بازبینی‌شونده استفاده کنید.
+        </div>
+        <div className="relative mt-5">
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+            aria-hidden="true"/>
+          <input type="search" value={iranQuery} onChange={(event) => setIranQuery(event.target.value)}
+            aria-label="جست‌وجوی نام فارسی یا انگلیسی در نمایه تاریخی ایران"
+            placeholder="جست‌وجوی فارسی یا انگلیسی؛ مانند ایبوپروفن، Ibuprofen، متفورمین"
+            className="min-h-[46px] w-full rounded-lg border border-slate-300 bg-white py-2 pr-10 pl-4 text-sm focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/20"
+          />
+        </div>
+        <p className="mt-3 text-xs text-slate-600" data-testid="iran-index-result-count">
+          {formatPersianDigits(indexedMatches.length)} نتیجه از {formatPersianDigits(IRAN_REFERENCE_INDEX.length)} عنوان
+        </p>
+        {indexedShown.length === 0 ? (
+          <p className="mt-6 rounded-lg border border-dashed border-slate-200 p-5 text-sm text-slate-600">
+            عنوانی مطابق عبارت جست‌وجو یافت نشد. املای فارسی یا انگلیسی را تغییر دهید.
+          </p>
+        ) : (
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="iran-index-list">
+            {indexedShown.map((entry) => (
+              <li key={entry.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-sm font-bold leading-7 text-slate-900">{entry.heading}</p>
+                <p className="mt-2 text-xs text-slate-600">
+                  صفحه PDF: {formatPersianDigits(entry.sourcePdfPage)} · فقط نمایه تاریخی · فاقد تأیید بالینی
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        {indexedMatches.length > indexedShown.length && (
+          <button type="button" onClick={() => setIranVisible((count) => count + PAGE_SIZE)}
+            className="mt-5 min-h-[42px] rounded-lg border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-bold text-teal-800 hover:bg-teal-100">
+            نمایش موارد بیشتر ({formatPersianDigits(indexedMatches.length - indexedShown.length)} باقی‌مانده)
+          </button>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section
       aria-label="بانک دارویی آفلاین و استعلام سریع ژنریک"
@@ -104,6 +181,18 @@ export function LocalFormularyView({
               {cachedCount > 0 ? ` · ${formatPersianDigits(cachedCount)} ذخیره خودکار` : ''}
             </span>
           </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+          <p className="flex-1 text-xs leading-6 text-slate-700">
+            <strong>{formatPersianDigits(catalog.length)} مونوگراف</strong> با فیلدهای بالینی (در انتظار بازبینی مستقل)
+            <span className="mx-2">·</span>
+            <strong>{formatPersianDigits(IRAN_REFERENCE_INDEX.length)} مدخل تاریخی</strong> صرفاً برای جست‌وجوی نام
+          </p>
+          <button type="button" onClick={() => setLibraryView('iran-index')}
+            className="min-h-[38px] rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-800">
+            نمایه ژنریک ایران
+          </button>
         </div>
 
         {/* Search Input + High-Alert Toggle */}
