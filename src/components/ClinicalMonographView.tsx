@@ -143,6 +143,53 @@ export function ClinicalMonographView({
           <strong className="mr-1">صرف مشاهده یادداشت‌های منبع‌دار به معنی تأیید دوز نیست.</strong>
         </div>
 
+        {medication.sourceType === 'box' && medication.packagingResolution && (
+          <div role="note" className="mt-4 rounded-xl border border-slate-300 bg-slate-50 p-4 text-sm leading-7">
+            <h3 className="text-sm font-bold text-slate-900">تطبیق مشخصات بسته‌بندی ایران</h3>
+            <p className="mt-1 font-semibold text-amber-900">
+              {medication.packagingResolution.status === 'catalog-candidate'
+                ? 'شباهت متنی با یک محصول کاتالوگ؛ تأیید قطعی نیست'
+                : medication.packagingResolution.status === 'conflict'
+                  ? 'مغایرت میان اطلاعات دیده‌شده و کاتالوگ'
+                  : medication.packagingResolution.status === 'ambiguous'
+                    ? 'چند احتمال یا اطلاعات ناکافی'
+                    : medication.packagingResolution.status === 'not-found'
+                      ? 'در نمونه‌های محدود کاتالوگ یافت نشد'
+                      : 'اطلاعات دیداری کافی برای تطبیق وجود ندارد'}
+            </p>
+            {medication.packagingEvidence && (
+              <dl className="mt-2 grid grid-cols-1 gap-1 text-xs leading-6 sm:grid-cols-2">
+                <div><dt className="inline font-bold">برند مشاهده‌شده: </dt>
+                  <dd className="inline">{medication.packagingEvidence.brand || 'نامشخص'}</dd></div>
+                <div><dt className="inline font-bold">قدرت مشاهده‌شده: </dt>
+                  <dd className="inline" dir="auto">{medication.packagingEvidence.strength || 'نامشخص'}</dd></div>
+                <div><dt className="inline font-bold">شرکت مشاهده‌شده: </dt>
+                  <dd className="inline">{medication.packagingEvidence.manufacturer || 'نامشخص'}</dd></div>
+                <div><dt className="inline font-bold">شکل دارویی: </dt>
+                  <dd className="inline">{medication.packagingEvidence.dosageForm || 'نامشخص'}</dd></div>
+                <div><dt className="inline font-bold">IRC خوانده‌شده: </dt>
+                  <dd className="inline">{medication.packagingEvidence.irc || 'ناخوانا / ارائه نشده'}</dd></div>
+              </dl>
+            )}
+            <ul className="mt-2 list-disc pr-5 text-xs text-slate-700">
+              {medication.packagingResolution.reasons.map((reason, idx) => (
+                <li key={idx}>{reason}</li>
+              ))}
+            </ul>
+            {medication.packagingResolution.sourceUrl && (
+              <a href={medication.packagingResolution.sourceUrl} target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-xs font-semibold text-teal-800 underline underline-offset-2">
+                منبع کاتالوگ تولیدکننده
+              </a>
+            )}
+            <p className="mt-2 text-xs font-medium text-red-800">
+              برای تأیید اصالت، شناسه ثبت، قدرت و مجوز فرآورده را با سامانه TTAC و داروساز تطبیق دهید.
+              عکس به‌تنهایی دلیل اصالت یا تأیید دوز نیست.
+            </p>
+          </div>
+        )}
+
         {/* Section Filter Bar */}
         <div
           role="tablist"
