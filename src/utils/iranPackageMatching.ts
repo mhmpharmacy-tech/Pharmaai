@@ -82,7 +82,7 @@ function formFromObserved(text: string): PackagingForm | null {
   const n = normalizePackageText(text);
   if (!n) return null;
   if (/prefilled|pre filled|سرنگ.*(پر|آماده)|pfs/.test(n)) return 'prefilled-syringe';
-  if (/injection pen|auto injector|pen|قلم تزریق|قلم/.test(n)) return 'injection-pen';
+  if (/\b(?:injection\s+pen|auto[ -]?injector|pen)\b|قلم تزریق|قلم/.test(n)) return 'injection-pen';
   if (/suspension|powder.*susp|سوسپانسیون|پودر.*شربت/.test(n)) return 'oral-suspension';
   if (/chewable|جویدنی/.test(n)) return 'chewable-tablet';
   if (/softgel|soft gel|کپسول نرم/.test(n)) return 'softgel';

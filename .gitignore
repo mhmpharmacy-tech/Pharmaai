@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Regulator exports, authorization letters, consent forms and identifiable photos
+private-data/
+*.patient-photo.*
