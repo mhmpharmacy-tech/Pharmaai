@@ -1,3 +1,5 @@
+import type { ObservedPackageText, PackagingResolution } from '../utils/iranPackageMatching';
+
 export type ScanMode = 'auto' | 'prescription' | 'box';
 
 export type SourceType = 'prescription' | 'box' | 'manual';
@@ -43,6 +45,10 @@ export interface MedicationItem {
   sourceType: SourceType;
   /** Records are unreviewed until a separate audited approval process exists. */
   verificationStatus?: 'unverified-ai' | 'unverified-legacy';
+  /** Untrusted observations returned by the vision model, never authentication proof. */
+  packagingEvidence?: ObservedPackageText;
+  /** Server-side catalogue reconciliation; cannot be treated as a validated IRC. */
+  packagingResolution?: PackagingResolution;
   customDosingSchedule?: string;
   dosing: MedicationDosing;
   safety: MedicationSafety;

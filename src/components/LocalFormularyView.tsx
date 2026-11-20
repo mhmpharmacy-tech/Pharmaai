@@ -17,6 +17,7 @@ import {
 import { countFormularyByCategory, searchLocalFormulary } from '../utils/localDrugSearch';
 import { getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
 import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from '../data/iranReference';
+import { IRAN_MANUFACTURERS, IRAN_MARKET_PRODUCT_EXEMPLARS, IRAN_REGULATOR_PORTALS } from '../data/iranManufacturerProducts';
 import { normalizeSearchText } from '../utils/localDrugSearch';
 import { formatPersianDigits, getMedicationKey } from '../utils/pharmacyLogic';
 import type { MedicationItem } from '../types/pharmacy';
@@ -39,9 +40,12 @@ export function LocalFormularyView({
   onInspectDrugMonograph,
 }: LocalFormularyViewProps) {
   const [query, setQuery] = useState('');
-  const [libraryView, setLibraryView] = useState<'clinical' | 'iran-index'>('clinical');
+  const [libraryView, setLibraryView] = useState<'clinical' | 'iran-index' | 'iran-products'>('clinical');
   const [iranQuery, setIranQuery] = useState('');
   const [iranVisible, setIranVisible] = useState(PAGE_SIZE);
+  const [manufacturerQuery, setManufacturerQuery] = useState('');
+  const [manufacturerFilter, setManufacturerFilter] = useState('all');
+  const [manufacturerVisible, setManufacturerVisible] = useState(PAGE_SIZE);
   const [category, setCategory] = useState<FormularyCategory>('all');
   const [highAlertOnly, setHighAlertOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -61,6 +65,21 @@ export function LocalFormularyView({
     });
   }, [iranQuery]);
   const indexedShown = indexedMatches.slice(0, iranVisible);
+
+  useEffect(() => setManufacturerVisible(PAGE_SIZE), [manufacturerFilter, manufacturerQuery]);
+
+  const matchedManufacturerProducts = useMemo(() => {
+    const tokens = normalizeSearchText(manufacturerQuery).split(' ').filter(Boolean);
+    return IRAN_MARKET_PRODUCT_EXEMPLARS.filter((product) => {
+      if (manufacturerFilter !== 'all' && product.manufacturerId !== manufacturerFilter) return false;
+      const maker = IRAN_MANUFACTURERS.find((m) => m.id === product.manufacturerId);
+      const searchable = normalizeSearchText(
+        [product.brand, product.genericName, product.strengthLabel, product.form, maker?.nameFa, maker?.nameEn].join(' ')
+      );
+      return tokens.every((token) => searchable.includes(token));
+    });
+  }, [manufacturerQuery, manufacturerFilter]);
+  const manufacturerShown = matchedManufacturerProducts.slice(0, manufacturerVisible);
 
   const activeKeys = useMemo(
     () => new Set(activeMedications.map((m) => getMedicationKey(m))),
@@ -93,6 +112,90 @@ export function LocalFormularyView({
     () => catalog.filter((item) => item.cachedFromAi).length,
     [catalog]
   );
+
+  if (libraryView === 'iran-products') {
+    return (
+      <section aria-label="نمونه محصولات و شرکت‌های داروسازی ایران"
+        className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900">محصولات و تولیدکنندگان ایرانی</h1>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {formatPersianDigits(IRAN_MARKET_PRODUCT_EXEMPLARS.length)} نمونه فرآورده از
+              {formatPersianDigits(IRAN_MANUFACTURERS.length)} شرکت با منبع مشخص
+            </p>
+          </div>
+          <button type="button" onClick={() => setLibraryView('clinical')}
+            className="min-h-[40px] rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-teal-800">
+            بازگشت به مونوگراف‌ها
+          </button>
+        </div>
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-950" role="note">
+          این نمونه‌ها صرفاً اطلاعات شرکت/برند/قدرت/فرم دارویی از کاتالوگ ۲۰۲۴ یا فهرست ثانویه‌اند.
+          ثبت IRC و وضعیت فعلی تولید/عرضه، تصویر بسته و قیمت هنوز از TTAC به‌طور مستقل تأیید نشده‌اند.
+          مدل هوش مصنوعی از تصاویر وب «آموزش مجدد» ندیده و تطبیق عکس فقط یک پیشنهاد برای بررسی است.
+        </div>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input type="search" value={manufacturerQuery} onChange={(e) => setManufacturerQuery(e.target.value)}
+            placeholder="جست‌وجوی برند، ماده مؤثره، قدرت یا تولیدکننده"
+            aria-label="جست‌وجوی محصولات دارویی ایرانی"
+            className="min-h-[44px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-700 focus:outline-none"
+          />
+          <select value={manufacturerFilter} onChange={(e) => setManufacturerFilter(e.target.value)}
+            aria-label="فیلتر شرکت سازنده"
+            className="min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 text-sm">
+            <option value="all">همه تولیدکنندگان</option>
+            {IRAN_MANUFACTURERS.map((maker) => (
+              <option key={maker.id} value={maker.id}>{maker.nameFa}</option>
+            ))}
+          </select>
+        </div>
+        <p className="mt-3 text-xs text-slate-500" data-testid="iran-manufacturer-result-count">
+          {formatPersianDigits(matchedManufacturerProducts.length)} نتیجه
+        </p>
+        {manufacturerShown.length === 0 ? (
+          <p className="mt-6 text-sm text-slate-600">محصولی مطابق این جست‌وجو ثبت نشده است.</p>
+        ) : (
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="iran-manufacturer-products">
+            {manufacturerShown.map((product) => {
+              const maker = IRAN_MANUFACTURERS.find((m) => m.id === product.manufacturerId);
+              return (
+                <li key={product.id} className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-sm font-bold text-slate-900">{product.brand}</p>
+                  <p className="mt-1 text-xs text-slate-700">{product.genericName}</p>
+                  <p className="mt-1 text-xs text-slate-600" dir="ltr">
+                    {product.strengthLabel} · {product.form}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-slate-800">{maker?.nameFa}</p>
+                  <p className="mt-2 text-[11px] text-amber-800">
+                    IRC استعلام نشده · عکس مرجعِ مجاز ثبت نشده
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                    <a target="_blank" rel="noopener noreferrer" href={product.sourceUrl}
+                      className="font-semibold text-teal-700 underline underline-offset-2">منبع ثبت محصول</a>
+                    {product.externalPhotoPageUrl && (
+                      <a target="_blank" rel="noopener noreferrer" href={product.externalPhotoPageUrl}
+                        className="font-semibold text-teal-700 underline underline-offset-2">مشاهده صفحه حاوی عکس محصول</a>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {matchedManufacturerProducts.length > manufacturerShown.length && (
+          <button type="button" onClick={() => setManufacturerVisible((n) => n + PAGE_SIZE)}
+            className="mt-5 min-h-[42px] rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-teal-800">
+            نمایش موارد بیشتر ({formatPersianDigits(matchedManufacturerProducts.length - manufacturerShown.length)} باقی‌مانده)
+          </button>
+        )}
+        <p className="mt-6 text-xs text-slate-600">
+          بررسی شناسه اصالت و اطلاعات رسمی: <a href={IRAN_REGULATOR_PORTALS.ttac} target="_blank"
+          rel="noopener noreferrer" className="font-semibold text-teal-700 underline">TTAC</a>
+        </p>
+      </section>
+    );
+  }
 
   if (libraryView === 'iran-index') {
     return (
@@ -188,10 +291,16 @@ export function LocalFormularyView({
             <strong>{formatPersianDigits(catalog.length)} مونوگراف</strong> با فیلدهای بالینی (در انتظار بازبینی مستقل)
             <span className="mx-2">·</span>
             <strong>{formatPersianDigits(IRAN_REFERENCE_INDEX.length)} مدخل تاریخی</strong> صرفاً برای جست‌وجوی نام
+            <span className="mx-2">·</span>
+            <strong>{formatPersianDigits(IRAN_MARKET_PRODUCT_EXEMPLARS.length)} نمونه محصول ایرانی</strong> با هویت شرکت
           </p>
           <button type="button" onClick={() => setLibraryView('iran-index')}
-            className="min-h-[38px] rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-800">
+            className="min-h-[38px] rounded-lg border border-teal-700 bg-white px-3.5 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50">
             نمایه ژنریک ایران
+          </button>
+          <button type="button" onClick={() => setLibraryView('iran-products')}
+            className="min-h-[38px] rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-800">
+            تولیدکنندگان و محصولات
           </button>
         </div>
 

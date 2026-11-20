@@ -192,7 +192,7 @@ export function CameraScannerPanel({
             اسکن سریع نسخه یا جلد دارو
           </h1>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            تصویر فیش نسخه یا بسته دارو را بگیرید تا دوزینگ، تداخل‌ها، هشدارها و تنوع مصرف استخراج شود.
+            از نسخه یا جعبه دارو عکس بگیرید. در حالت بسته‌بندی، نام برند، قدرت، شکل دارویی و سازنده با نمونه‌های کاتالوگ ایران تطبیق آزمایشی می‌شوند؛ نتیجه جایگزین استعلام TTAC یا تأیید داروساز نیست.
           </p>
         </div>
 
@@ -349,7 +349,7 @@ export function CameraScannerPanel({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           capture="environment"
           onChange={handleFileChange}
           aria-label="انتخاب فایل تصویر نسخه یا جلد دارو"
@@ -375,6 +375,14 @@ export function CameraScannerPanel({
           <Database className="h-4 w-4 shrink-0 text-teal-700" aria-hidden="true" />
           <span>{infoNotice}</span>
         </div>
+      )}
+
+      {scanMode === 'box' && (
+        <p role="note" className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-6 text-slate-700">
+          برای دقت بیشتر، عکس مستقیم از جلوی جعبه (نام و قدرت)، پشت بسته (سازنده، IRC/GTIN)
+          و بسته‌بندی واقعی بگیرید. نور کافی و فوکوس واضح مهم است؛ رنگ یا لوگو به‌تنهایی تأیید دارو نیست.
+          عکس‌های راهنمای شرکت‌ها در سامانه کپی یا برای آموزش مدل استفاده نشده‌اند.
+        </p>
       )}
 
       {/* Quick Manual Drug Lookup / Add (with Instant Offline Suggestions) */}
