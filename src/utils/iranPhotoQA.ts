@@ -43,7 +43,7 @@ const VIEWS:PhotoView[]=['front','back','blister','bottle','ampoule','authentici
 export function auditIranPhotoManifest(
   entry:IranDrugPhotoManifest,
   approvedRegistryIrcs:ReadonlySet<string>,
-  now='2026-11-21'
+  now=new Date().toISOString().slice(0,10)
 ):PhotoAudit {
   const reasons:string[]=[];
   if(!entry.imageId?.trim() || !entry.productId?.trim())reasons.push('شناسه تصویر و محصول ضروری است.');
@@ -106,8 +106,9 @@ export function auditIranPhotoSet(
     if(accepted){
       eligible++;
       perView[image.view]++;
-      const views=viewMap.get(image.productId)??new Set<string>();
-      views.add(image.view);viewMap.set(image.productId,views);
+      const revisionKey=image.productId+'::'+image.packagingRevision;
+      const views=viewMap.get(revisionKey)??new Set<string>();
+      views.add(image.view);viewMap.set(revisionKey,views);
     }
     reviewSummary.push({imageId:image.imageId,eligible:accepted,reasons});
   }
