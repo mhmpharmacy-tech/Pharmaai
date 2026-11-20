@@ -135,6 +135,14 @@ export function ClinicalMonographView({
           )}
         </div>
 
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-6 text-amber-950" role="note">
+          اطلاعات درمانی و دوزهای این رکورد هنوز به‌طور مستقل توسط داروساز تأیید نشده‌اند.
+          {medication.verificationStatus === 'unverified-ai'
+            ? ' بخشی از محتوا توسط مدل هوش مصنوعی تولید شده است.'
+            : ' متن قدیمی کتابخانه نیز نیاز به تطبیق با برچسب روز و اندیکاسیون دارد.'}
+          <strong className="mr-1">صرف مشاهده یادداشت‌های منبع‌دار به معنی تأیید دوز نیست.</strong>
+        </div>
+
         {/* Section Filter Bar */}
         <div
           role="tablist"
