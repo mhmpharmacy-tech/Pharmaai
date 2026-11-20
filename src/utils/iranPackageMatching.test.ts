@@ -44,9 +44,14 @@ test('strength conflict must fail closed even for a known brand/manufacturer', (
     brand: 'Zaxime 200', strength: '400 mg', dosageForm: 'tablet',
     manufacturer: 'داروسازی دانا', generic: 'Cefixime',
   });
-  // 400 mg is a different, explicitly catalogued Zaxime product.
-  assert.equal(r.productId, 'daana-zaxime-400');
-  assert.equal(r.status, 'catalog-candidate');
+  // Contradictory "Zaxime 200" and "400 mg" cannot be silently reconciled.
+  assert.equal(r.status, 'conflict');
+  const correct = matchIranianPackage({
+    brand: 'Zaxime 400', strength: '400 mg', dosageForm: 'tablet',
+    manufacturer: 'داروسازی دانا', generic: 'Cefixime',
+  });
+  assert.equal(correct.productId, 'daana-zaxime-400');
+  assert.equal(correct.status, 'catalog-candidate');
   const conflict = matchIranianPackage({
     brand: 'Zaxime', strength: '800 mg', dosageForm: 'tablet',
     manufacturer: 'داروسازی دانا',
