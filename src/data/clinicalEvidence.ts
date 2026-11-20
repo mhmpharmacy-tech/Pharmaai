@@ -20,7 +20,9 @@ export type EvidenceReferenceId =
   | 'dipiro2023-dyslipidemia'
   | 'dipiro2023-hypertension'
   | 'applied2024-diabetes'
-  | 'applied2024-anticoagulation';
+  | 'applied2024-anticoagulation'
+  | 'dailymed2026-metformin-er'
+  | 'medscape2026-type2dm';
 
 export interface EvidenceReference {
   id: EvidenceReferenceId;
@@ -28,6 +30,8 @@ export interface EvidenceReference {
   edition: string;
   year: number;
   location: string;
+  /** Set only when the exact verified document URL is known. */
+  url?: string;
 }
 
 export interface ClinicalEvidenceNote {
@@ -118,6 +122,22 @@ export const EVIDENCE_REFERENCES: Record<EvidenceReferenceId, EvidenceReference>
     year: 2024,
     location: 'Chapter 53, Type 2 Diabetes; Case 53-11, metformin counseling and monitoring',
   },
+  'dailymed2026-metformin-er': {
+    id: 'dailymed2026-metformin-er',
+    book: 'DailyMed / U.S. National Library of Medicine',
+    edition: 'U.S. product label: Metformin hydrochloride ER',
+    year: 2026,
+    location: 'Dosage and Administration §§2.2–2.5; Contraindications §4; Warnings §5',
+    url: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c568d49f-c040-4f1e-ad36-77b05ab659c3',
+  },
+  'medscape2026-type2dm': {
+    id: 'medscape2026-type2dm',
+    book: 'Medscape Guideline Essentials',
+    edition: 'ADA/EASD Type 2 Diabetes Management (2026)',
+    year: 2026,
+    location: 'Glucose-Lowering Medication Selection; published October 8, 2026',
+    url: 'https://reference.medscape.com/cc2/p10/management-type-2-diabetes-ada-easd-guidelines-2026a100112t',
+  },
   'applied2024-anticoagulation': {
     id: 'applied2024-anticoagulation',
     book: 'Applied Therapeutics: The Clinical Use of Drugs',
@@ -180,6 +200,24 @@ export const CLINICAL_EVIDENCE_NOTES: ClinicalEvidenceNote[] = [
     clinicalSummary: 'عوارض گوارشی متفورمین غالباً با مصرف همراه غذا و افزایش تدریجی دوز کمتر می‌شوند. پایش عملکرد کلیه و ارزیابی ویتامین B12 در مصرف طولانی‌مدت اهمیت دارد.',
     boundaries: 'در eGFR کمتر از ۳۰ mL/min/1.73m² مصرف متفورمین منع دارد. شروع درمان در eGFR ۳۰ تا ۴۵ باید با برچسب روز و شرایط بیمار ارزیابی شود؛ دستور قطع پیرامون ماده حاجب برای همه بیماران یکسان نیست.',
     references: ['dipiro2023-diabetes', 'applied2024-diabetes'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
+    id: 'metformin-er-us-label',
+    genericKey: 'metformin',
+    topic: 'برچسب رسمی آمریکا: متفورمین آهسته‌رهش (ER)',
+    clinicalSummary: 'در برچسب بررسی‌شده برای متفورمین ER، قرص باید کامل بلعیده شود و عملکرد کلیه پیش از درمان ارزیابی گردد. استفاده در eGFR کمتر از ۳۰ منع مصرف دارد و شروع در بازهٔ ۳۰ تا ۴۵ توصیه نمی‌شود.',
+    boundaries: 'این داده مخصوص فراورده ER و برچسب آمریکایی پیوندشده است؛ دوز و اندیکاسیون آن نباید خودکار به فراورده‌های IR یا برندهای ایرانی تعمیم داده شود. وضعیت بیمار و برچسب همان فراورده بررسی شود.',
+    references: ['dailymed2026-metformin-er'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
+    id: 'diabetes-guideline-2026',
+    genericKey: 'metformin',
+    topic: 'انتخاب درمان فردمحور دیابت نوع ۲ در راهنمای ۲۰۲۶',
+    clinicalSummary: 'در رویکرد جدید ADA/EASD، انتخاب داروی کاهش قند بر اساس وضعیت فرد، بیماری قلبی‌عروقی و کلیوی و اهداف فراتر از HbA1c انجام می‌شود؛ متفورمین به‌تنهایی پاسخ پیش‌فرض برای همه بیماران نیست.',
+    boundaries: 'این یادداشت خلاصهٔ راهنمای درمان است، نه دوز فردی یا تأیید داروی خاص در ایران. برای تصمیم نهایی توصیهٔ اصلی و دسترسی واقعی دارو بررسی شود.',
+    references: ['medscape2026-type2dm'],
     reviewStatus: 'pending-pharmacist-review',
   },
   {
@@ -269,3 +307,35 @@ export function getClinicalEvidenceForDrug(genericName: string): ClinicalEvidenc
   const key = normalizeEvidenceDrugKey(genericName);
   return key ? CLINICAL_EVIDENCE_NOTES.filter((item) => item.genericKey === key) : [];
 }
+
+/**
+ * Review portals are navigational links, not content ingested or licensed
+ * for copying. A portal link never implies that the current formulary's
+ * drug values were verified by that service.
+ */
+export const EXTERNAL_REFERENCE_PORTALS = [
+  {
+    name: 'دارویاب',
+    purpose: 'بررسی دستی فرآورده و برند بازار ایران',
+    url: 'https://www.darooyab.ir/',
+    status: 'external-manual-check',
+  },
+  {
+    name: 'Medscape Drug Reference',
+    purpose: 'بررسی دستی دوز، هشدار و تداخل در مرجع تخصصی',
+    url: 'https://reference.medscape.com/',
+    status: 'external-manual-check',
+  },
+  {
+    name: 'UpToDate Lexidrug',
+    purpose: 'مرجع اشتراکی برای بازبینی مجاز متخصص؛ محتوای آن وارد این مخزن نشده است',
+    url: 'https://www.wolterskluwer.com/en/solutions/uptodate/pro/lexidrug',
+    status: 'subscription-not-imported',
+  },
+  {
+    name: 'DailyMed',
+    purpose: 'متن رسمی برچسب‌های دارویی آمریکا؛ لزوماً مطابق بازار ایران نیست',
+    url: 'https://dailymed.nlm.nih.gov/dailymed/',
+    status: 'external-manual-check',
+  },
+] as const;
