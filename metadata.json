@@ -1,0 +1,6 @@
+{
+  "name": "دارویار — دستیار هوشمند داروساز",
+  "description": "اپلیکیشن کمک داروساز برای تشخیص سریع داروهای نسخه از طریق فیش یا جلد دارو با دوربین و نمایش دوزینگ، تداخل‌های دارویی، هشدارهای ایمنی و تنوع مصرف.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
