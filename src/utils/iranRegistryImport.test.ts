@@ -78,3 +78,22 @@ test('quoted CSV with comma in name, semicolon delimiter and malformed rows',()=
   assert.throws(()=>parseCsvWithHeaders('irc,brandName\n123,"oops'));
   assert.throws(()=>parseCsvWithHeaders('irc,brandName\n123'));
 });
+
+
+test('pharmacist can stage manually observed public IRC record without fabricated bulk-data license', () => {
+  const publicObservation = {
+    ...provenance,
+    accessBasis: 'public-manual-review' as const,
+    usagePermissionReference: '',
+    publicRecordEvidenceId: 'public-IRC-page-captured-2026-11-21',
+  };
+  assert.deepEqual(validateBatchProvenance(publicObservation),[]);
+  const report=stageIranRegistry([sample],publicObservation);
+  assert.equal(report.accepted.length,1);
+  assert.equal(report.verifiedCount,0);
+  assert.equal(report.accepted[0].verificationStatus,'pending-pharmacist-review');
+
+  const undocumented = {...publicObservation,publicRecordEvidenceId:''};
+  assert.ok(validateBatchProvenance(undocumented).some(x=>x.includes('شاهد')));
+  assert.equal(stageIranRegistry([sample],undocumented).accepted.length,0);
+});
