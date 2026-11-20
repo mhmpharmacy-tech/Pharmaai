@@ -11,7 +11,13 @@ export interface RegistryBatchProvenance {
   datasetRelease: string;
   downloadedAt: string;
   rawSourceSha256: string;
+  /** A manual lookup in a public official listing does not require a paid data feed.
+   * This does NOT assert permission for systematic scraping or redistribution.
+   */
+  accessBasis?: 'authorized-export' | 'public-manual-review';
   usagePermissionReference: string;
+  /** Specific archived record/screenshot or entry URL + capture evidence for a manual lookup. */
+  publicRecordEvidenceId?: string;
 }
 
 export interface RegistryProductInput {
@@ -87,7 +93,16 @@ export function validateBatchProvenance(source: RegistryBatchProvenance): string
   if (!source.datasetRelease.trim()) reasons.push('نسخه/تاریخ انتشار داده ثبت نشده است.');
   if (!validIsoDate(source.downloadedAt)) reasons.push('زمان دریافت با قالب معتبر ISO ثبت نشده است.');
   if (!/^[a-fA-F0-9]{64}$/.test(source.rawSourceSha256)) reasons.push('هش SHA-256 فایل منبع معتبر نیست.');
-  if (source.usagePermissionReference.trim().length < 8) reasons.push('مستند مجوز دسترسی/استفاده ثبت نشده است.');
+  const basis = source.accessBasis ?? 'authorized-export';
+  if (basis === 'authorized-export') {
+    if (source.usagePermissionReference.trim().length < 8)
+      reasons.push('برای دریافت انبوه، مستند مجوز داده/دسترسی ثبت نشده است.');
+  } else if (basis === 'public-manual-review') {
+    if (!source.publicRecordEvidenceId?.trim() || source.publicRecordEvidenceId.trim().length < 8)
+      reasons.push('برای مشاهده دستی عمومی، شناسه شاهد صفحه رسمی/تاریخ ثبت لازم است.');
+  } else {
+    reasons.push('روش به‌دست‌آوردن داده مشخص نیست.');
+  }
   return reasons;
 }
 

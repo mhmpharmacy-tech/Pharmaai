@@ -103,3 +103,20 @@ test('a case cannot be part of train/dev data or duplicate a held-out image',()=
   assert.throws(()=>evaluateIranPackaging([sample,{...sample,id:'case-2'}]));
   assert.throws(()=>evaluateIranPackaging([{...sample,datasetSplit:'train' as never}]));
 });
+
+
+test('self-photographed pharmacy packaging can be staged without manufacturer contract',()=>{
+  const selfPhoto={
+    ...base,
+    rights:{
+      basis:'pharmacist-original-photo' as const,
+      rightsHolder:'Pharmacist Photographer',
+      authorizedUse:'clinical-reference-and-evaluation' as const,
+      permissionEvidenceId:'photo-owner-attestation-2026-11',
+      permissionDate:'2026-10-01',
+    },
+  };
+  const reviewed=auditIranPhotoManifest(selfPhoto,new Set([syntheticIRC]));
+  assert.equal(reviewed.eligible,true);
+  assert.equal(reviewed.usedForModelTraining,false);
+});
