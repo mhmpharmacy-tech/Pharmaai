@@ -15,6 +15,7 @@ import {
   type FormularyDrugRecord,
 } from '../data/localDrugFormulary';
 import { countFormularyByCategory, searchLocalFormulary } from '../utils/localDrugSearch';
+import { getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
 import { formatPersianDigits, getMedicationKey } from '../utils/pharmacyLogic';
 import type { MedicationItem } from '../types/pharmacy';
 
@@ -224,6 +225,7 @@ export function LocalFormularyView({
           >
             {displayedDrugs.map((drug) => {
               const isInActivePrescription = activeKeys.has(getMedicationKey(drug));
+              const hasPendingReferenceNotes = getClinicalEvidenceForDrug(drug.genericName).length > 0;
 
               return (
                 <li
@@ -259,10 +261,16 @@ export function LocalFormularyView({
                           </span>
                         </>
                       )}
+                      {hasPendingReferenceNotes && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span className="text-amber-800">یادداشت علمی منبع‌دار؛ در انتظار بازبینی</span>
+                        </>
+                      )}
                       {drug.cachedFromAi && (
                         <>
                           <span aria-hidden="true">·</span>
-                          <span className="text-teal-700">ذخیره‌شده از اسکن</span>
+                          <span className="font-semibold text-amber-800">تولیدشده با AI؛ تأییدنشده</span>
                         </>
                       )}
                     </div>
