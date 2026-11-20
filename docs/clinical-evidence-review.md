@@ -6,7 +6,7 @@ This is **an initial evidence-index and clinical-review layer**, not a complete 
 medication database or approval for live prescribing. The existing formulary dosing
 text is intentionally **not overwritten** by book-derived prose or generative AI.
 
-The app now displays short, independently paraphrased reference notes for nine
+The app now displays short, independently paraphrased reference notes for thirteen
 ingredient groups, with chapter/page or case identifiers and a mandatory
 `pending-pharmacist-review` state. Other drugs explicitly have no curated note yet.
 
@@ -17,7 +17,8 @@ ingredient groups, with chapter/page or case identifiers and a mandatory
    105 (Otitis Media).
 2. Terry L. Schwinghammer et al., *DiPiro's Pharmacotherapy Handbook*,
    12th ed. McGraw Hill, 2023. Relevant chapters: 11 (Ischemic Heart Disease);
-   14 (Venous Thromboembolism); 19 (Diabetes Mellitus).
+   14 (Venous Thromboembolism); 19 (Diabetes Mellitus); 20 (Thyroid Disorders);
+   24 (GERD); 8 (Dyslipidemia); 10 (Hypertension).
 3. Caroline S. Zeind et al., *Applied Therapeutics: The Clinical Use of Drugs*,
    12th ed. Wolters Kluwer, **2024** (the uploaded PDF filename includes "2023",
    but its copyright page identifies 2024). Relevant cases: 53-11 (metformin);
@@ -32,7 +33,8 @@ The original copyrighted PDFs are not committed to the repository.
   amoxicillin and amoxicillin/clavulanate (acute otitis media).
 - Adult pharmacotherapy: metformin (GI tolerability, renal function, vitamin B12),
   warfarin (INR/bleeding), clopidogrel (CYP2C19 response), insulin glargine
-  (basal insulin counseling and hypoglycemia).
+  (basal insulin counseling and hypoglycemia), levothyroxine (absorption),
+  omeprazole (GERD/PPI), atorvastatin (muscle symptoms), losartan (BP/renal monitoring).
 
 The notes are **condition- and indication-specific**; none is proof that every
 dose or presentation in the older static formulary has been validated.
