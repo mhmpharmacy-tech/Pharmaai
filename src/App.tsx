@@ -21,7 +21,6 @@ import type {
   WorkspaceTab,
 } from './types/pharmacy';
 import {
-  cacheMedicationsInLocalDb,
   initLocalDrugDb,
 } from './utils/localDrugDb';
 import { findBestLocalDrugMatch } from './utils/localDrugSearch';
@@ -160,12 +159,8 @@ export default function App() {
     setErrorMessage(null);
     setInfoNotice(null);
 
-    // Cache newly discovered medications into IndexedDB for future offline access
-    cacheMedicationsInLocalDb(incomingMeds, localCatalog).then((updated) => {
-      if (updated !== localCatalog) {
-        setLocalCatalog(updated);
-      }
-    });
+    // Never make unverified AI output part of the offline clinical formulary.
+    // Pending pharmacist review must be explicit and backed by provenance.
 
     saveSessionToHistory(
       nextMeds,
