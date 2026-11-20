@@ -18,6 +18,7 @@ import { countFormularyByCategory, searchLocalFormulary } from '../utils/localDr
 import { getClinicalEvidenceForDrug } from '../data/clinicalEvidence';
 import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from '../data/iranReference';
 import { IRAN_MANUFACTURERS, IRAN_MARKET_PRODUCT_EXEMPLARS, IRAN_REGULATOR_PORTALS } from '../data/iranManufacturerProducts';
+import { IranProductReviewPanel } from './IranProductReviewPanel';
 import { normalizeSearchText } from '../utils/localDrugSearch';
 import { formatPersianDigits, getMedicationKey } from '../utils/pharmacyLogic';
 import type { MedicationItem } from '../types/pharmacy';
@@ -40,7 +41,7 @@ export function LocalFormularyView({
   onInspectDrugMonograph,
 }: LocalFormularyViewProps) {
   const [query, setQuery] = useState('');
-  const [libraryView, setLibraryView] = useState<'clinical' | 'iran-index' | 'iran-products'>('clinical');
+  const [libraryView, setLibraryView] = useState<'clinical' | 'iran-index' | 'iran-products' | 'iran-review'>('clinical');
   const [iranQuery, setIranQuery] = useState('');
   const [iranVisible, setIranVisible] = useState(PAGE_SIZE);
   const [manufacturerQuery, setManufacturerQuery] = useState('');
@@ -112,6 +113,10 @@ export function LocalFormularyView({
     () => catalog.filter((item) => item.cachedFromAi).length,
     [catalog]
   );
+
+  if (libraryView === 'iran-review') {
+    return <IranProductReviewPanel onBack={() => setLibraryView('clinical')} />;
+  }
 
   if (libraryView === 'iran-products') {
     return (
@@ -301,6 +306,10 @@ export function LocalFormularyView({
           <button type="button" onClick={() => setLibraryView('iran-products')}
             className="min-h-[38px] rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-800">
             تولیدکنندگان و محصولات
+          </button>
+          <button type="button" onClick={() => setLibraryView('iran-review')}
+            className="min-h-[38px] rounded-lg border border-teal-700 bg-white px-3.5 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50">
+            تکمیل و اصلاح اطلاعات ایران
           </button>
         </div>
 
