@@ -267,6 +267,20 @@ export function PrescriptionBasket({
                       )}
                     </div>
 
+                    {med.packagingResolution && (
+                      <p className={`mt-1.5 text-xs font-semibold leading-6 ${
+                        med.packagingResolution.status === 'conflict'
+                          ? 'text-red-800'
+                          : 'text-amber-800'
+                      }`}>
+                        {med.packagingResolution.status === 'catalog-candidate'
+                          ? `مشابه کاتالوگ ایران: ${med.packagingResolution.manufacturerName || 'تولیدکننده نامشخص'} · تأیید اصالت انجام نشده`
+                          : med.packagingResolution.status === 'conflict'
+                            ? 'هشدار: تناقض در نام/قدرت/شکل دارویی یا تولیدکننده محصول'
+                            : 'هویت بسته‌بندی در کاتالوگ محدود ایران تأیید نشده است؛ بررسی دستی لازم است'}
+                      </p>
+                    )}
+
                     {med.customDosingSchedule && (
                       <p
                         className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-teal-800"
