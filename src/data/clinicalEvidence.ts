@@ -15,6 +15,10 @@ export type EvidenceReferenceId =
   | 'dipiro2023-vte'
   | 'dipiro2023-ihd'
   | 'dipiro2023-insulin'
+  | 'dipiro2023-thyroid'
+  | 'dipiro2023-gerd'
+  | 'dipiro2023-dyslipidemia'
+  | 'dipiro2023-hypertension'
   | 'applied2024-diabetes'
   | 'applied2024-anticoagulation';
 
@@ -78,6 +82,34 @@ export const EVIDENCE_REFERENCES: Record<EvidenceReferenceId, EvidenceReference>
     edition: '12th',
     year: 2023,
     location: 'Chapter 19, Diabetes Mellitus; printed pages 202–203',
+  },
+  'dipiro2023-thyroid': {
+    id: 'dipiro2023-thyroid',
+    book: "DiPiro's Pharmacotherapy Handbook",
+    edition: '12th',
+    year: 2023,
+    location: 'Chapter 20, Thyroid Disorders; printed pages 226–228',
+  },
+  'dipiro2023-gerd': {
+    id: 'dipiro2023-gerd',
+    book: "DiPiro's Pharmacotherapy Handbook",
+    edition: '12th',
+    year: 2023,
+    location: 'Chapter 24, Gastroesophageal Reflux Disease; printed pages 255–257',
+  },
+  'dipiro2023-dyslipidemia': {
+    id: 'dipiro2023-dyslipidemia',
+    book: "DiPiro's Pharmacotherapy Handbook",
+    edition: '12th',
+    year: 2023,
+    location: 'Chapter 8, Dyslipidemia; printed pages 87–88',
+  },
+  'dipiro2023-hypertension': {
+    id: 'dipiro2023-hypertension',
+    book: "DiPiro's Pharmacotherapy Handbook",
+    edition: '12th',
+    year: 2023,
+    location: 'Chapter 10, Hypertension; printed pages 119–122',
   },
   'applied2024-diabetes': {
     id: 'applied2024-diabetes',
@@ -169,6 +201,42 @@ export const CLINICAL_EVIDENCE_NOTES: ClinicalEvidenceNote[] = [
     reviewStatus: 'pending-pharmacist-review',
   },
   {
+    id: 'hypothyroidism-levothyroxine',
+    genericKey: 'levothyroxine',
+    topic: 'جایگزینی هورمون تیروئید و تداخل جذب',
+    clinicalSummary: 'لووتیروکسین درمان جایگزینی استاندارد کم‌کاری تیروئید است. کلسیم، آهن و برخی داروها و غذاها می‌توانند جذب آن را کاهش دهند؛ تنظیم درمان با شاخص‌های تیروئیدی پیگیری می‌شود.',
+    boundaries: 'فاصله مصرف از مکمل‌ها و هدف TSH در بارداری، نوزادی یا اختلال هیپوفیز یکسان نیست و باید با شرایط بیمار و فراورده به‌روز تطبیق داده شود.',
+    references: ['dipiro2023-thyroid'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
+    id: 'gerd-omeprazole',
+    genericKey: 'omeprazole',
+    topic: 'مهارکننده پمپ پروتون؛ GERD و تداخل دارویی',
+    clinicalSummary: 'مهارکننده‌های پمپ پروتون در GERD با علائم قابل‌توجه استفاده می‌شوند. در مصرف طولانی‌مدت، ضرورت ادامه درمان و عوارض بالقوه باید بازبینی شود؛ امپرازول می‌تواند با فعال‌سازی کلوپیدوگرل تداخل داشته باشد.',
+    boundaries: 'مدت درمان، انتخاب فراورده و نحوه مصرف بر اساس اندیکاسیون متفاوت است؛ تغییر داروی ضدپلاکت یا PPI بدون بازبینی درمانی انجام نشود.',
+    references: ['dipiro2023-gerd', 'dipiro2023-ihd'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
+    id: 'dyslipidemia-atorvastatin',
+    genericKey: 'atorvastatin',
+    topic: 'استاتین‌ها؛ پایش عوارض عضلانی',
+    clinicalSummary: 'آتورواستاتین از داروهای کاهش LDL است. در صورت درد یا ضعف عضلانی غیرمعمول باید عوارض عضلانی استاتین و عوامل مستعدکننده بررسی شوند؛ سنجش روتین CK در بیمار بی‌علامت توصیه عمومی نیست.',
+    boundaries: 'شدت درمان، تداخل با مهارکننده‌های CYP و وضعیت بیماری کبدی باید فردمحور بازبینی شوند؛ درد عضلانی به‌تنهایی اثبات رابدومیولیز نیست.',
+    references: ['dipiro2023-dyslipidemia'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
+    id: 'hypertension-losartan',
+    genericKey: 'losartan',
+    topic: 'ARB در کنترل فشارخون',
+    clinicalSummary: 'لوزارتان از دسته مسدودکننده‌های گیرنده آنژیوتانسین است. ارزیابی پاسخ فشارخون، عملکرد کلیه، پتاسیم و داروهای هم‌زمان در انتخاب و پیگیری درمان اهمیت دارد.',
+    boundaries: 'بارداری، کم‌آبی، تنگی شریان کلیوی، مکمل پتاسیم و ترکیبات مؤثر بر محور رنین-آنژیوتانسین باید جداگانه بررسی شوند.',
+    references: ['dipiro2023-hypertension'],
+    reviewStatus: 'pending-pharmacist-review',
+  },
+  {
     id: 'diabetes-basal-insulin',
     genericKey: 'insulin-glargine',
     topic: 'انسولین پایه؛ دیابت و ایمنی تزریق',
@@ -190,6 +258,10 @@ export function normalizeEvidenceDrugKey(genericName: string): string | null {
   if (name.startsWith('warfarin')) return 'warfarin';
   if (name.startsWith('clopidogrel')) return 'clopidogrel';
   if (name.startsWith('insulin glargine')) return 'insulin-glargine';
+  if (name.startsWith('levothyroxine')) return 'levothyroxine';
+  if (name.startsWith('omeprazole')) return 'omeprazole';
+  if (name.startsWith('atorvastatin')) return 'atorvastatin';
+  if (name.startsWith('losartan')) return 'losartan';
   return null;
 }
 
