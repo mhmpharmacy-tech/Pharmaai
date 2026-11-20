@@ -7,6 +7,8 @@ import { LOCAL_DRUG_FORMULARY } from '../src/data/localDrugFormulary';
 import { CLINICAL_EVIDENCE_NOTES, getClinicalEvidenceForDrug } from '../src/data/clinicalEvidence';
 import { IRAN_REFERENCE_INDEX, IRAN_INDEX_PROVENANCE } from '../src/data/iranReference';
 import { IRAN_MANUFACTURERS, IRAN_MARKET_PRODUCT_EXEMPLARS } from '../src/data/iranManufacturerProducts';
+import { DAROOYAB_PUBLIC_PRODUCT_FACTS, DAROOYAB_GENERIC_REFERENCE_LINKS } from '../src/data/darooyabPublicFacts';
+import { IRAN_EDITABLE_REVIEW_SEEDS } from '../src/utils/iranProductReview';
 
 type Row = (typeof LOCAL_DRUG_FORMULARY)[number];
 
@@ -46,6 +48,11 @@ for (const record of LOCAL_DRUG_FORMULARY) {
 const report = {
   meaning: 'Data completeness only; NO drug dose has been approved by this audit',
   totalFormularyRecords: LOCAL_DRUG_FORMULARY.length,
+  darooyabIndividuallyVerifiedPageFacts: DAROOYAB_PUBLIC_PRODUCT_FACTS.length,
+  darooyabGenericSourceLinks: DAROOYAB_GENERIC_REFERENCE_LINKS.length,
+  allEditableIranProductReferenceExamples: IRAN_EDITABLE_REVIEW_SEEDS.length,
+  darooyabProductIRCVerified: 0,
+  darooyabPhotosCopiedOrModelTrained: 0,
   ifdaTTACVerifiedRegistryRows: 0,
   licensedAndReviewedIranianPackagePhotos: 0,
   realWorldVisualRecognitionAccuracyMeasured: false,
@@ -71,6 +78,10 @@ const report = {
 };
 console.log(JSON.stringify(report, null, 2));
 
+if (DAROOYAB_PUBLIC_PRODUCT_FACTS.length !== 25 || DAROOYAB_GENERIC_REFERENCE_LINKS.length !== 25) {
+  console.error('Directly observed Darooyab-source pilot data unexpectedly changed.');
+  process.exitCode = 1;
+}
 if (IRAN_MARKET_PRODUCT_EXEMPLARS.length < 50) {
   console.error('Iran manufacturer-product pilot unexpectedly incomplete.');
   process.exitCode = 1;
