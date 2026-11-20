@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/data/clinicalEvidence.test.ts src/utils/localDrugSearch.test.ts src/utils/pharmacyLogic.test.ts",
+    "test": "tsx --test src/data/clinicalEvidence.test.ts src/data/iranReference/index.test.ts src/utils/localDrugSearch.test.ts src/utils/pharmacyLogic.test.ts",
     "audit:formulary": "tsx scripts/auditFormulary.ts"
   },
   "dependencies": {
