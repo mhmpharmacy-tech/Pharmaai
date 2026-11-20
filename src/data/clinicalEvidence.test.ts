@@ -8,7 +8,7 @@ import {
 } from './clinicalEvidence';
 
 test('references resolve and all extracted guidance stays pending human review', () => {
-  assert.ok(CLINICAL_EVIDENCE_NOTES.length >= 9);
+  assert.ok(CLINICAL_EVIDENCE_NOTES.length >= 13);
   for (const note of CLINICAL_EVIDENCE_NOTES) {
     assert.equal(note.reviewStatus, 'pending-pharmacist-review');
     assert.ok(note.clinicalSummary.trim().length > 20);
@@ -27,6 +27,8 @@ test('generic variants resolve to a single ingredient record', () => {
   assert.equal(normalizeEvidenceDrugKey('Acetaminophen (Paracetamol)'), 'acetaminophen');
   assert.equal(normalizeEvidenceDrugKey('Insulin Glargine'), 'insulin-glargine');
   assert.equal(normalizeEvidenceDrugKey('UnknownMedication'), null);
+  assert.equal(normalizeEvidenceDrugKey('Levothyroxine Sodium'), 'levothyroxine');
+  assert.equal(normalizeEvidenceDrugKey('Losartan Potassium'), 'losartan');
 });
 
 test('amoxicillin-clavulanate is not confused with plain amoxicillin', () => {
