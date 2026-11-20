@@ -179,6 +179,7 @@ export default function App() {
     const asMed: MedicationItem = {
       ...drug,
       sourceType: 'manual',
+      verificationStatus: 'unverified-legacy',
     };
     const nextMeds = mergeScannedMedications(medications, [asMed]);
     const matchedInNext =
