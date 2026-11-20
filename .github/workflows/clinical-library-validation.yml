@@ -21,5 +21,7 @@ jobs:
         run: bun run lint
       - name: Unit tests
         run: bun run test
+      - name: Clinical formulary structural audit
+        run: bun run audit:formulary
       - name: Production build
         run: bun run build
