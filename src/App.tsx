@@ -339,9 +339,10 @@ export default function App() {
     if (selectedMedicationId === id) {
       setSelectedMedicationId(remaining[0]?.id ?? null);
     }
-    if (remaining.length < 2) {
-      setAiInteractions([]);
-    }
+    // AI interactions reference the previous prescription snapshot.
+    // They must be invalidated whenever any medication is removed.
+    setAiInteractions([]);
+    setClinicalSummary('فهرست داروها تغییر کرد؛ تحلیل قبلی AI باطل شد. تداخل‌ها باید دوباره بررسی شوند.');
   };
 
   const handleUpdateDosingSchedule = (id: string, schedule: string) => {
