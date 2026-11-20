@@ -87,14 +87,25 @@ const LOCAL_INTERACTION_RULES: LocalInteractionRule[] = [
       'جایگزینی امپرازول با پنتوپرازول یا فاموتیدین با هماهنگی پزشک معالج شدیداً توصیه می‌شود.',
   },
   {
-    id: 'rule-statin-macrolide',
-    groupA: ['atorvastatin', 'آتورواستاتین', 'simvastatin', 'سیمواستاتین', 'lovastatin', 'لواستاتین'],
-    groupB: ['azithromycin', 'آزیترومایسین', 'clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
+    id: 'rule-simva-lova-clarithro-erythro',
+    groupA: ['simvastatin', 'سیمواستاتین', 'lovastatin', 'لواستاتین'],
+    groupB: ['clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
+    severity: 'major',
+    mechanism: 'مهار CYP3A4 توسط کلاریترومایسین و اریترومایسین و افزایش غلظت سیمواستاتین/لواستاتین',
+    clinicalEffect: 'افزایش خطر میوپاتی شدید و رابدومیولیز',
+    management: 'هم‌زمانی سیمواستاتین یا لواستاتین با کلاریترومایسین منع مصرف دارد. برای اریترومایسین نیز از هم‌زمانی اجتناب شود؛ انتخاب آنتی‌بیوتیک جایگزین یا وقفه درمان استاتین فقط با ارزیابی پزشک/داروساز.',
+    // Evidence: NHS SPS 2024, https://sps.nhs.uk/articles/managing-interactions-between-macrolides-and-statins/
+    // DailyMed clarithromycin label: https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=de33ba3a-9df1-4076-8d5f-b603d2698096
+  },
+  {
+    id: 'rule-atorva-clarithro-erythro',
+    groupA: ['atorvastatin', 'آتورواستاتین'],
+    groupB: ['clarithromycin', 'کلاریترومایسین', 'erythromycin', 'اریترومایسین'],
     severity: 'moderate',
-    mechanism: 'مهار متابولیسم کبدی CYP3A4 (به‌ویژه با کلاریترومایسین) و افزایش فراهمی زیستی استاتین در عضلات',
-    clinicalEffect: 'افزایش خطر میوپاتی، دردهای عضلانی شدید و رابدومیولیز همراه با افزایش آنزیم CK',
-    management:
-      'با کلاریترومایسین قطع موقت استاتین طی دوره آنتی‌بیوتیک توصیه می‌شود. با آزیترومایسین ریسک کمتر است اما در صورت بروز درد یا ضعف عضلانی غیرمعمول و ادرار تیره، بیمار باید فوراً مراجعه کند.',
+    mechanism: 'مهار CYP3A4 و افزایش مواجهه سیستمیک با آتورواستاتین',
+    clinicalEffect: 'افزایش خطر علائم عضلانی و میوپاتی',
+    management: 'در صورت امکان آنتی‌بیوتیک کم‌تداخل‌تر انتخاب شود؛ تصمیم درباره قطع موقت یا تعدیل دوز استاتین با پزشک/داروساز است. آزیترومایسین مهارکننده مهم CYP3A4 نیست و این قاعده برای آن اعمال نمی‌شود.',
+    // Evidence: NHS SPS 2024, https://sps.nhs.uk/articles/managing-interactions-between-macrolides-and-statins/
   },
   {
     id: 'rule-arb-acei-nsaid',
@@ -217,16 +228,6 @@ const LOCAL_INTERACTION_RULES: LocalInteractionRule[] = [
     clinicalEffect: 'افزایش ۲ تا ۴ برابری ریسک خونریزی فوقانی گوارشی',
     management:
       'استامینوفن مسکن ایمن‌تری است؛ در صورت نیاز به NSAID یا آسپرین طولانی‌مدت، افزودن پنتوپرازول جهت محافظت معده بررسی شود.',
-  },
-  {
-    id: 'rule-metformin-atorvastatin-check',
-    groupA: ['atorvastatin', 'آتورواستاتین'],
-    groupB: ['aspirin', 'آسپرین'],
-    severity: 'minor',
-    mechanism: 'فاقد تداخل فارماکوکینتیک بالینی قابل‌توجه؛ هر دو در پروتکل پیشگیری قلبی-عروقی هم‌زمان تجویز می‌شوند',
-    clinicalEffect: 'تحمل‌پذیری مناسب؛ تنها توجه به علائم گوارشی آسپرین و درد عضلانی استاتین کافی است',
-    management:
-      'ادامه رژیم مطابق نسخه؛ آتورواستاتین می‌تواند هر ساعت شبانه‌روز (ترجیحاً عصر/شب) و آسپرین با غذا مصرف شود.',
   },
   {
     id: 'rule-doac-nsaid-antiplatelet',
