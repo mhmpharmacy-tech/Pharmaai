@@ -67,6 +67,9 @@ function mergeCatalogByKey(
     byKey.set(getMedicationKey(item), item);
   }
   for (const item of stored) {
+    // Legacy AI-generated cached records have no documented clinical approval.
+    // Exclude them even if persisted on an older browser installation.
+    if (item.cachedFromAi) continue;
     const key = getMedicationKey(item);
     if (!byKey.has(key)) {
       byKey.set(key, item);
@@ -121,45 +124,14 @@ export async function initLocalDrugDb(): Promise<LocalDbInitResult> {
   }
 }
 
+/**
+ * @deprecated AI-generated monographs must not be promoted into the
+ * clinical formulary without an audited human-review workflow.
+ * Kept as a no-op for backward compatibility with older callers.
+ */
 export async function cacheMedicationsInLocalDb(
-  meds: MedicationItem[],
+  _meds: MedicationItem[],
   currentCatalog: FormularyDrugRecord[]
 ): Promise<FormularyDrugRecord[]> {
-  if (meds.length === 0) return currentCatalog;
-
-  const existingKeys = new Set(currentCatalog.map((m) => getMedicationKey(m)));
-  const newRecords: FormularyDrugRecord[] = [];
-
-  for (const med of meds) {
-    const key = getMedicationKey(med);
-    if (!existingKeys.has(key)) {
-      existingKeys.add(key);
-      newRecords.push(
-        toFormularyRecord(
-          {
-            ...med,
-            id: med.id.startsWith('db-') ? med.id : `db-cached-${Date.now()}-${newRecords.length}`,
-            sourceType: 'manual',
-          },
-          true
-        )
-      );
-    }
-  }
-
-  if (newRecords.length === 0) {
-    return currentCatalog;
-  }
-
-  if (isIndexedDbSupported()) {
-    try {
-      const db = await openFormularyDatabase();
-      await writeRecordsToStore(db, newRecords);
-      db.close();
-    } catch {
-      // Fall back cleanly to in-memory catalog update
-    }
-  }
-
-  return [...newRecords, ...currentCatalog];
+  return currentCatalog;
 }
