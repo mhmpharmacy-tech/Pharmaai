@@ -1,4 +1,5 @@
 import type { ObservedPackageText, PackagingResolution } from '../utils/iranPackageMatching';
+import type { ReceiptTextEvidence, ReceiptNameResolution } from '../utils/receiptDrugNames';
 
 export type ScanMode = 'auto' | 'prescription' | 'box';
 
@@ -49,6 +50,10 @@ export interface MedicationItem {
   packagingEvidence?: ObservedPackageText;
   /** Server-side catalogue reconciliation; cannot be treated as a validated IRC. */
   packagingResolution?: PackagingResolution;
+  /** Text actually observed from the printed receipt, not package imagery. */
+  receiptEvidence?: ReceiptTextEvidence;
+  /** Name-only matching; never verifies strength, registration or clinical use. */
+  receiptResolution?: ReceiptNameResolution;
   customDosingSchedule?: string;
   dosing: MedicationDosing;
   safety: MedicationSafety;
