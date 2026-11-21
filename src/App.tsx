@@ -38,7 +38,7 @@ const HISTORY_STORAGE_KEY = 'daruyar_scan_history_v1';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('scanner');
-  const [scanMode, setScanMode] = useState<ScanMode>('auto');
+  const [scanMode, setScanMode] = useState<ScanMode>('prescription');
 
   const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [aiInteractions, setAiInteractions] = useState<DrugInteraction[]>([]);
