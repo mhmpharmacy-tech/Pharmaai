@@ -304,6 +304,20 @@ export function LocalFormularyView({
           </button>
         </div>
 
+        <details className="mt-3 rounded-xl border border-slate-200 px-4 py-3 text-sm">
+          <summary className="cursor-pointer font-bold text-teal-800">برچسب‌های دارویی آمریکا · openFDA</summary>
+          <p className="my-2 text-xs leading-6 text-slate-600">
+            نمایهٔ اکسل برای هر ژنریک، تعداد رکوردهای هم‌نام و یک نمونه برچسب آمریکایی را نشان می‌دهد.
+            پیش از استفادهٔ بالینی، ترکیب، شکل، قدرت و راه مصرف فرآورده را بررسی کنید.
+          </p>
+          <div className="flex flex-wrap gap-4 text-teal-800 underline">
+            <a href={import.meta.env.BASE_URL + 'openfda/formulary-labels.csv'} download>دریافت نمایهٔ اکسل (CSV)</a>
+            <a href={import.meta.env.BASE_URL + 'openfda/example-labels.zip'} download>متن کامل ۵ برچسب نمونه (JSON)</a>
+            <a href={import.meta.env.BASE_URL + 'openfda/manifest.json'} download>مشخصات فایل‌ها و SHA-256</a>
+            <a href="https://open.fda.gov/apis/drug/label/download/" target="_blank" rel="noreferrer">دانلود آرشیو از FDA</a>
+          </div>
+        </details>
+
         {/* Search Input + High-Alert Toggle */}
         <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">

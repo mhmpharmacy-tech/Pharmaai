@@ -1,0 +1,118 @@
+{
+  "export_date": "2026-11-20",
+  "partitions": [
+    {
+      "display_name": "/drug/label (part 1 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0001-of-0014.json.zip",
+      "size_mb": "130.70",
+      "records": 20000,
+      "sha256": "294629e3f94875a0c0f2cc2e5063e535452a130619fad07aade2d0f88b7d8346",
+      "bytes": 137051874
+    },
+    {
+      "display_name": "/drug/label (part 2 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0002-of-0014.json.zip",
+      "size_mb": "143.76",
+      "records": 20000,
+      "sha256": "4c919cf04408cc7a823847490da2e81a210af23aa453e64fb23c9bc3bc65b470",
+      "bytes": 150738939
+    },
+    {
+      "display_name": "/drug/label (part 3 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0003-of-0014.json.zip",
+      "size_mb": "135.89",
+      "records": 20000,
+      "sha256": "25f54166b116154347a12a71940cb5e79ec8bad0d93fa67f769a5b9d7f0827fd",
+      "bytes": 142494579
+    },
+    {
+      "display_name": "/drug/label (part 4 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0004-of-0014.json.zip",
+      "size_mb": "137.24",
+      "records": 20000,
+      "sha256": "77a0a162cbb317336e450913be43e7421df474982e7bf02ee9d3ba843c10e3f2",
+      "bytes": 143905694
+    },
+    {
+      "display_name": "/drug/label (part 5 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0005-of-0014.json.zip",
+      "size_mb": "125.29",
+      "records": 20000,
+      "sha256": "7de25544c71cf2476ae99d01b42256f6400ad71b7fe87e7c18bc70b7ac05c352",
+      "bytes": 131377232
+    },
+    {
+      "display_name": "/drug/label (part 6 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0006-of-0014.json.zip",
+      "size_mb": "136.83",
+      "records": 20000,
+      "sha256": "2b1fea9133c25f6fcdb4120ec404958e5e17335f2a2971de17bd85fa26ce2f11",
+      "bytes": 143473764
+    },
+    {
+      "display_name": "/drug/label (part 7 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0007-of-0014.json.zip",
+      "size_mb": "140.88",
+      "records": 20000,
+      "sha256": "12ceda4ee2661e36b267edb6a433909f403e921ad8cd0fb935dc7a0aa64ac352",
+      "bytes": 147721556
+    },
+    {
+      "display_name": "/drug/label (part 8 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0008-of-0014.json.zip",
+      "size_mb": "137.73",
+      "records": 20000,
+      "sha256": "670163be24f3ccff5469c637b8a61d5a19a8bc3d2ed85be139e43bd244013b3e",
+      "bytes": 144415501
+    },
+    {
+      "display_name": "/drug/label (part 9 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0009-of-0014.json.zip",
+      "size_mb": "126.21",
+      "records": 20000,
+      "sha256": "2cf7efcf9290a328253192a59b1df5b096ac75fea3b0202f8e0dad1f574d544f",
+      "bytes": 132337112
+    },
+    {
+      "display_name": "/drug/label (part 10 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0010-of-0014.json.zip",
+      "size_mb": "133.20",
+      "records": 20000,
+      "sha256": "cbadf885a4c05400c8d63370ee4429496aca8497c659eaf63930e27580791fda",
+      "bytes": 139670400
+    },
+    {
+      "display_name": "/drug/label (part 11 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0011-of-0014.json.zip",
+      "size_mb": "140.33",
+      "records": 20000,
+      "sha256": "1ec1727f79ede92f350c42cbda0e6c48281d5c661774bb40f5da43c50e7f5a70",
+      "bytes": 147146433
+    },
+    {
+      "display_name": "/drug/label (part 12 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0012-of-0014.json.zip",
+      "size_mb": "135.32",
+      "records": 20000,
+      "sha256": "7868aaf0942dba4d3a6b74f22b8889567befda6e52412d22559397bb4d7b5e27",
+      "bytes": 141888084
+    },
+    {
+      "display_name": "/drug/label (part 13 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0013-of-0014.json.zip",
+      "size_mb": "126.49",
+      "records": 20000,
+      "sha256": "5ab97629e2af893404c770444c259be16da6969f121d983c257f71dd4ab7afe6",
+      "bytes": 132631064
+    },
+    {
+      "display_name": "/drug/label (part 14 of 14)",
+      "file": "https://download.open.fda.gov/drug/label/drug-label-0014-of-0014.json.zip",
+      "size_mb": "39.62",
+      "records": 5009,
+      "sha256": "70631cd23bf55fcf9f41ec395a8e6b122f4786af25582f6006c27d8ccbdd4832",
+      "bytes": 41546512
+    }
+  ],
+  "total_records": 265009
+}

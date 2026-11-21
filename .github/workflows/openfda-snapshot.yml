@@ -1,0 +1,33 @@
+name: Archive openFDA snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['public/openfda/manifest.json']
+permissions:
+  contents: write
+concurrency: openfda-snapshot
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download and validate snapshot
+        run: python scripts/download_openfda.py
+      - name: Store verified partitions as release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          date=$(jq -r .export_date public/openfda/manifest.json)
+          tag="openfda-labels-$date"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "openFDA drug labels $date" --notes "US drug labeling source archives, CSV index and SHA-256 manifest. For reference review."
+          fi
+          if [[ "$(gh release view "$tag" --json isDraft --jq .isDraft)" == true ]]; then
+            gh release upload "$tag" data/openfda/archives/*.zip public/openfda/{manifest.json,formulary-labels.csv} --clobber
+            gh release edit "$tag" --draft=false --latest=false
+          fi

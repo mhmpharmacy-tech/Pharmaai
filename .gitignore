@@ -10,3 +10,4 @@ coverage/
 # Regulator exports, authorization letters, consent forms and identifiable photos
 private-data/
 *.patient-photo.*
+/data/openfda/archives/
