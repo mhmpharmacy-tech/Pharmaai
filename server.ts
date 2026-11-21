@@ -273,11 +273,27 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
         const isBox = detectedSource === 'box' || fallbackSource === 'box';
         const evidence = isBox ? sanitizePackagingEvidence(m.packagingEvidence) : undefined;
         const matching = evidence ? matchIranianPackage(evidence) : undefined;
+        const isReceipt = !isBox && detectedSource === 'prescription';
+        const receiptEvidence = isReceipt ? sanitizeReceiptTextEvidence(m.receiptEvidence) : undefined;
+        const receiptResolution = receiptEvidence ? reconcileReceiptDrugText(receiptEvidence) : undefined;
+        const knownRegimen = receiptEvidence?.visibleRegimen ?? '';
+        const originalDosing = m.dosing && typeof m.dosing==='object' && !Array.isArray(m.dosing)
+          ? m.dosing as object : {};
         return {
           ...m,
-          id: typeof m.id === 'string' && m.id.trim() ? m.id : `ai-med-${Date.now()}-${idx}`,
+          id: typeof m.id === 'string' && m.id.trim() ? m.id : ['ai-med',Date.now(),idx].join('-'),
           sourceType: isBox ? 'box' : detectedSource,
           verificationStatus: 'unverified-ai',
+          ...(isReceipt ? {
+            persianName: receiptEvidence?.visibleDrugName || 'نام دارو خوانا نیست',
+            genericName: receiptResolution?.genericName ?? '',
+            strength: receiptResolution?.explicitStrength ?? '',
+            dosageForm: receiptEvidence?.visibleDosageForm ?? '',
+            brandName: '',
+            receiptEvidence,
+            receiptResolution,
+            dosing: { ...originalDosing, prescribedRegimen:knownRegimen },
+          } : {}),
           ...(isBox ? { packagingEvidence: evidence, packagingResolution: matching } : {
             packagingEvidence: undefined, packagingResolution: undefined,
           }),
@@ -298,6 +314,8 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
       })
     : [];
 
+  const receiptsToReview=medications.filter(m => m.receiptResolution &&
+    m.receiptResolution.status !== 'name-candidate').length;
   const matches = medications.filter((m) => m.packagingResolution?.status === 'catalog-candidate').length;
   const unsafe = medications.some((m) =>
     m.packagingResolution && ['conflict', 'ambiguous', 'insufficient-evidence'].includes(m.packagingResolution.status));
@@ -308,7 +326,9 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
       `${typeof raw.clinicalSummary === 'string' ? raw.clinicalSummary : 'تحلیل انجام شد.'}` +
       (detectedSource === 'box'
         ? ` تطبیق آزمایشی کاتالوگ ایران: ${matches} مورد مشابه یافت شد. ${unsafe ? 'برخی مشخصات نیازمند بررسی مجدد هستند. ' : ''}هیچ موردی صرفاً با اسکن عکس از نظر اصالت/مجوز IRC تأیید نمی‌شود.`
-        : ''),
+        : detectedSource === 'prescription'
+          ? ' MVP فیش: استخراج نام دارو از متن است، نه تشخیص عکس بسته‌بندی. قدرت و مقدارهای غایب خالی مانده‌اند؛ ' + receiptsToReview + ' قلم نامشخص/مبهم نیازمند بازبینی است.'
+          : ''),
     medications,
     interactions,
   };
@@ -339,7 +359,7 @@ async function startServer() {
 
       const modeHint =
         scanMode === 'prescription'
-          ? 'کاربر حالت «فیش / نسخه دارویی» را انتخاب کرده است. تمام اقلام دارویی نوشته‌شده در نسخه و دستور مصرف (Sig) هر قلم را استخراج کن.'
+          ? 'MVP فیش دارویی: هر قلم را با receiptEvidence.visibleLine و نام واقعاً موجود در همان خط، receiptEvidence.visibleDrugName استخراج کن. فقط اگر قدرت همراه واحد روی همان خط دیده شد آن را ثبت کن؛ ۱۰ عدد، تعداد است نه دوز. ابهام را خالی بگذار.'
           : scanMode === 'box'
             ? 'کاربر حالت «جلد و بسته دارو» را انتخاب کرده است. نام برند، نام ژنریک، دوز و شکل دارویی روی جعبه یا بلیستر را استخراج کن.'
             : 'ابتدا تشخیص بده تصویر مربوط به «فیش/نسخه» است یا «جلد/جعبه دارو»، سپس تمام داروها را استخراج کن.';
@@ -362,7 +382,7 @@ async function startServer() {
                 },
               },
               {
-                text: `${modeHint}\n${existingList}\nاطلاعات کامل دوزینگ، تداخل‌ها، هشدارهای ایمنی و تنوع مصرف را در قالب JSON برگردان.`,
+                text: `${modeHint}\n${existingList}\nبرای تصویر فیش، نخست متن واقعی هر خط و نام دارو را در receiptEvidence بده. اگر قدرت/واحد/دستور مصرف روی همان خط نیست، strength و prescribedRegimen را خالی برگردان؛ دانسته‌های عمومی دارویی جایگزین OCR نیستند. قالب JSON را رعایت کن.`,
               },
             ],
           },
