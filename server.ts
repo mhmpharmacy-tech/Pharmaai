@@ -277,7 +277,7 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
         const isReceipt = !isBox && detectedSource === 'prescription';
         const receiptEvidence = isReceipt ? sanitizeReceiptTextEvidence(m.receiptEvidence) : undefined;
         const receiptResolution = receiptEvidence ? reconcileReceiptDrugText(receiptEvidence) : undefined;
-        const knownRegimen = receiptEvidence?.visibleRegimen ?? '';
+        const knownRegimen = receiptResolution?.visibleRegimen ?? '';
         return {
           ...m,
           id: typeof m.id === 'string' && m.id.trim() ? m.id : ['ai-med',Date.now(),idx].join('-'),
@@ -287,7 +287,7 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
             persianName: receiptEvidence?.visibleDrugName || 'نام دارو خوانا نیست',
             genericName: receiptResolution?.genericName ?? '',
             strength: receiptResolution?.explicitStrength ?? '',
-            dosageForm: receiptEvidence?.visibleDosageForm ?? '',
+            dosageForm: receiptResolution?.visibleDosageForm ?? '',
             brandName: '',
             receiptEvidence,
             receiptResolution,

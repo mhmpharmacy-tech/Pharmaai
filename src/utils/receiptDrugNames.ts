@@ -101,15 +101,32 @@ function visibleStrengthOnSameLine(e:ReceiptTextEvidence):string|null{
   const matched=strength.replace(/[۰-۹٠-٩]/g,ch=>PERSIAN_DIGITS[ch]??ch).match(STRENGTH_RE);
   if(!matched)return null;
   const literal=normalizeReceiptName(strength);
-  if(!literal||!normalizeReceiptName(line).includes(literal))return null;
-  return strength.slice(0,45);
+  const normalizedLine=normalizeReceiptName(line);
+  if(!literal)return null;
+  // Prevent a reported "1 mg" from being accepted against printed "11 mg".
+  let index=normalizedLine.indexOf(literal);
+  while(index>=0){
+    const before=normalizedLine[index-1]??'';
+    const after=normalizedLine[index+literal.length]??'';
+    if(!/[0-9.]/.test(before)&&!/[a-z0-9]/i.test(after))return strength.slice(0,45);
+    index=normalizedLine.indexOf(literal,index+1);
+  }
+  return null;
+}
+function visibleLiteralOnSameLine(line:string,value:string|undefined,max:number):string|null{
+  const literal=(value??'').trim().slice(0,max);
+  if(!literal||!line.trim())return null;
+  const normalized=normalizeReceiptName(literal);
+  if(normalized.length<2||!normalizeReceiptName(line).includes(normalized))return null;
+  return literal;
 }
 export function reconcileReceiptDrugText(e:ReceiptTextEvidence):ReceiptNameResolution{
   const observed=(e.visibleDrugName??'').trim().slice(0,140);
   const line=(e.visibleLine??'').trim().slice(0,350);
-  const base={observedName:observed,explicitStrength:visibleStrengthOnSameLine(e),
-    visibleDosageForm:(e.visibleDosageForm??'').trim().slice(0,50)||null,
-    visibleRegimen:(e.visibleRegimen??'').trim().slice(0,100)||null,
+  const readable=e.readability!=='unreadable';
+  const base={observedName:observed,explicitStrength:readable?visibleStrengthOnSameLine(e):null,
+    visibleDosageForm:readable?visibleLiteralOnSameLine(line,e.visibleDosageForm,50):null,
+    visibleRegimen:readable?visibleLiteralOnSameLine(line,e.visibleRegimen,100):null,
     clinicallyVerified:false as const};
   if(e.readability==='unreadable'||!observed||!line)
     return {...base,status:'unreadable',genericName:null,matchedReferenceIds:[],

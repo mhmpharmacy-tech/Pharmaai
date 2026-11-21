@@ -66,3 +66,52 @@ test('poor quality receipt text is not promoted to a product identity',()=>{
   assert.equal(result.status,'unreadable');
   assert.equal(result.genericName,null);
 });
+
+test('hallucinated regimen and dosage form are never accepted from a receipt line', () => {
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص دومپریدون 10 mg',
+    visibleDrugName:'دومپریدون',
+    visibleStrength:'10 mg',
+    visibleDosageForm:'آمپول',
+    visibleRegimen:'هر ۸ ساعت بعد غذا',
+    readability:'clear',
+  });
+  assert.equal(result.visibleDosageForm,null);
+  assert.equal(result.visibleRegimen,null);
+  assert.equal(result.explicitStrength,'10 mg');
+});
+test('literal regimen and form from the same printed line are allowed as unverified OCR', () => {
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص دومپریدون 10 mg هر ۸ ساعت',
+    visibleDrugName:'دومپریدون',
+    visibleStrength:'10 mg',
+    visibleDosageForm:'قرص',
+    visibleRegimen:'هر ۸ ساعت',
+    readability:'clear',
+  });
+  assert.equal(result.visibleDosageForm,'قرص');
+  assert.equal(result.visibleRegimen,'هر ۸ ساعت');
+  assert.equal(result.clinicallyVerified,false);
+});
+test('strength may not match as a substring of a larger numeric dose', () => {
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص دومپریدون 11 mg',
+    visibleDrugName:'دومپریدون',
+    visibleStrength:'1 mg',
+    readability:'clear',
+  });
+  assert.equal(result.explicitStrength,null);
+});
+test('unreadable receipt cannot retain dosing fragments', () => {
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص دومپریدون 10 mg هر ۸ ساعت',
+    visibleDrugName:'دومپریدون',
+    visibleStrength:'10 mg',
+    visibleDosageForm:'قرص',
+    visibleRegimen:'هر ۸ ساعت',
+    readability:'unreadable',
+  });
+  assert.equal(result.explicitStrength,null);
+  assert.equal(result.visibleRegimen,null);
+  assert.equal(result.visibleDosageForm,null);
+});
