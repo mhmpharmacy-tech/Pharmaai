@@ -117,8 +117,18 @@ function visibleLiteralOnSameLine(line:string,value:string|undefined,max:number)
   const literal=(value??'').trim().slice(0,max);
   if(!literal||!line.trim())return null;
   const normalized=normalizeReceiptName(literal);
-  if(normalized.length<2||!normalizeReceiptName(line).includes(normalized))return null;
-  return literal;
+  if(normalized.length<2)return null;
+  const normalizedLine=normalizeReceiptName(line);
+  let index=normalizedLine.indexOf(normalized);
+  while(index>=0){
+    const before=normalizedLine[index-1]??'';
+    const after=normalizedLine[index+normalized.length]??'';
+    // Reject substring matches inside a larger numeric quantity.
+    if(!(/[0-9]/.test(before)&&/[0-9]/.test(normalized[0])) &&
+       !(/[0-9]/.test(after)&&/[0-9]/.test(normalized[normalized.length-1])))return literal;
+    index=normalizedLine.indexOf(normalized,index+1);
+  }
+  return null;
 }
 export function reconcileReceiptDrugText(e:ReceiptTextEvidence):ReceiptNameResolution{
   const observed=(e.visibleDrugName??'').trim().slice(0,140);
@@ -129,11 +139,13 @@ export function reconcileReceiptDrugText(e:ReceiptTextEvidence):ReceiptNameResol
     visibleRegimen:readable?visibleLiteralOnSameLine(line,e.visibleRegimen,100):null,
     clinicallyVerified:false as const};
   if(e.readability==='unreadable'||!observed||!line)
-    return {...base,status:'unreadable',genericName:null,matchedReferenceIds:[],
+    return {...base,explicitStrength:null,visibleDosageForm:null,visibleRegimen:null,
+      status:'unreadable',genericName:null,matchedReferenceIds:[],
       reasons:['نام دارو یا خط واقعی رسید قابل‌خواندن نیست.']};
   const normalized=stripDosageWords(observed);
   if(normalized.length<4 || !normalizeReceiptName(line).includes(normalized))
-    return {...base,status:'unreadable',genericName:null,matchedReferenceIds:[],
+    return {...base,explicitStrength:null,visibleDosageForm:null,visibleRegimen:null,
+      status:'unreadable',genericName:null,matchedReferenceIds:[],
       reasons:['نام گزارش‌شده باید در متن همان خطِ خوانده‌شده وجود داشته باشد.']};
   const matches=known.get(normalized)??[];
   if(matches.length){

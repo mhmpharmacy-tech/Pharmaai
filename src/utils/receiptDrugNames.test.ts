@@ -115,3 +115,27 @@ test('unreadable receipt cannot retain dosing fragments', () => {
   assert.equal(result.visibleRegimen,null);
   assert.equal(result.visibleDosageForm,null);
 });
+
+test('mismatched drug name invalidates all extracted dose and directions',()=>{
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص متفورمین 500 mg هر ۸ ساعت',
+    visibleDrugName:'دومپریدون',
+    visibleStrength:'500 mg',
+    visibleDosageForm:'قرص',
+    visibleRegimen:'هر ۸ ساعت',
+    readability:'clear',
+  });
+  assert.equal(result.status,'unreadable');
+  assert.equal(result.explicitStrength,null);
+  assert.equal(result.visibleDosageForm,null);
+  assert.equal(result.visibleRegimen,null);
+});
+test('regimen numbers cannot be substrings of different quantities',()=>{
+  const result=reconcileReceiptDrugText({
+    visibleLine:'قرص دومپریدون هر ۱۱ ساعت',
+    visibleDrugName:'دومپریدون',
+    visibleRegimen:'هر ۱ ساعت',
+    readability:'clear',
+  });
+  assert.equal(result.visibleRegimen,null);
+});

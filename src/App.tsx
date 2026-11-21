@@ -46,6 +46,7 @@ export default function App() {
   const [accessToken, setAccessToken] = useState('');
   const [accessError, setAccessError] = useState('');
   const [accessBusy, setAccessBusy] = useState(false);
+  const [aiDisclosureAccepted, setAiDisclosureAccepted] = useState(false);
   useEffect(() => {
     let active = true;
     fetch('/api/access-status', { cache: 'no-store' })
@@ -289,6 +290,10 @@ export default function App() {
     mimeType: string,
     previewUrl: string
   ) => {
+    if (!aiDisclosureAccepted) {
+      setErrorMessage('پیش از ارسال نسخه یا تصویر به سرویس هوش مصنوعی، اطلاع‌رسانی پردازش ابری را تأیید کنید.');
+      return;
+    }
     setErrorMessage(null);
     setInfoNotice(null);
     setPreviewImageUrl(previewUrl);
@@ -342,6 +347,14 @@ export default function App() {
       return;
     }
 
+    if (!aiDisclosureAccepted) {
+      if (localMatch) {
+        handleSelectLocalDrug(localMatch, { noticeText: 'بدون ارسال به سرویس ابری؛ نمایش داده محلی و تأییدنشده.' });
+      } else {
+        setErrorMessage('برای استعلام از هوش مصنوعی، ابتدا اطلاع‌رسانی پردازش ابری را تأیید کنید.');
+      }
+      return;
+    }
     setIsAnalyzing(true);
 
     try {
@@ -449,6 +462,10 @@ export default function App() {
 
   const handleRecheckInteractionsWithAi = async () => {
     if (medications.length < 2) return;
+    if (!aiDisclosureAccepted) {
+      setErrorMessage('برای ارسال نام داروها به سرویس بررسی تداخلات ابری، ابتدا اطلاع‌رسانی را تأیید کنید.');
+      return;
+    }
     setErrorMessage(null);
     setIsCheckingInteractions(true);
 
@@ -549,6 +566,21 @@ export default function App() {
           </button>
         </div>
       )}
+      <section dir="rtl" className="mx-auto max-w-[1380px] px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-slate-800">
+          <label className="flex items-center gap-2 font-semibold">
+            <input type="checkbox" checked={aiDisclosureAccepted}
+              onChange={(event) => setAiDisclosureAccepted(event.target.checked)}
+              className="h-4 w-4 accent-teal-700" />
+            اطلاع‌رسانی پردازش ابری را خوانده‌ام
+          </label>
+          <p className="mt-1 text-xs leading-6">
+            هنگام استفاده از تحلیل هوش مصنوعی، تصویر نسخه یا نام داروها به سرویس Gemini ارسال می‌شود.
+            پیش از اسکن، نام، شماره تماس و سایر مشخصات هویتی بیمار را حذف کنید.
+            این گزینه فقط برای نشست جاری است و تأیید رضایت بیمار یا مجوز حقوقی محسوب نمی‌شود.
+          </p>
+        </div>
+      </section>
       <main className="mx-auto max-w-[1380px] px-4 pt-6 sm:px-6 lg:px-8">
         {activeTab === 'scanner' && (
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
