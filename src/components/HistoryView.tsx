@@ -7,6 +7,9 @@ interface HistoryViewProps {
   onReopenSession: (session: ScanSession) => void;
   onDeleteSession: (id: string) => void;
   onClearHistory: () => void;
+  persistHistory: boolean;
+  hasStoredHistory: boolean;
+  onPersistHistoryChange: (enabled: boolean) => void;
 }
 
 const SOURCE_LABELS = {
@@ -20,6 +23,9 @@ export function HistoryView({
   onReopenSession,
   onDeleteSession,
   onClearHistory,
+  persistHistory,
+  hasStoredHistory,
+  onPersistHistoryChange,
 }: HistoryViewProps) {
   return (
     <section
@@ -32,7 +38,7 @@ export function HistoryView({
             تاریخچه نسخه‌ها و اسکن‌های اخیر
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            نسخه‌های بررسی‌شده به‌صورت محلی در مرورگر شما ذخیره می‌شوند تا دسترسی سریع به سوابق ممکن باشد.
+            به‌صورت پیش‌فرض سوابق فقط تا بسته‌شدن صفحه در حافظه می‌مانند؛ ذخیره در مرورگر اختیاری است.
           </p>
         </div>
 
@@ -48,6 +54,24 @@ export function HistoryView({
         )}
       </div>
 
+      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-800">
+        <label className="flex items-center gap-2 font-semibold">
+          <input type="checkbox" checked={persistHistory}
+            onChange={(event) => onPersistHistoryChange(event.target.checked)}
+            className="h-4 w-4 accent-teal-700" />
+          ذخیره سوابق در مرورگر همین دستگاه (فقط دستگاه شخصی)
+        </label>
+        <p className="mt-2 text-xs leading-6 text-slate-700">
+          در حالت فعال، نام داروها و نتایج تحلیل به شکل متن عادی و بدون رمزنگاری در مرورگر باقی می‌مانند.
+          در رایانه مشترک داروخانه این گزینه را فعال نکنید. غیرفعال‌سازی، سوابق ذخیره‌شده را حذف می‌کند.
+        </p>
+        {hasStoredHistory && !persistHistory && (
+          <button type="button" onClick={onClearHistory}
+            className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-bold text-red-700">
+            حذف سوابق ذخیره‌شده قدیمی
+          </button>
+        )}
+      </div>
       {sessions.length === 0 ? (
         <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
           <Clock className="h-8 w-8 text-slate-400" aria-hidden="true" />
@@ -55,7 +79,7 @@ export function HistoryView({
             هنوز سابقه‌ای ثبت نشده است
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            پس از اسکن اولین فیش نسخه یا جلد دارو، خلاصه آن در این بخش ذخیره خواهد شد.
+            پس از اسکن، سوابق در همین نشست نمایش داده می‌شوند؛ ذخیره دائمی تنها با انتخاب شما فعال خواهد شد.
           </p>
         </div>
       ) : (
