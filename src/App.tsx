@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { CameraScannerPanel } from './components/CameraScannerPanel';
 import { ClinicalMonographView } from './components/ClinicalMonographView';
 import { HistoryView } from './components/HistoryView';
@@ -35,9 +35,51 @@ import {
 } from './utils/pharmacyLogic';
 
 const HISTORY_STORAGE_KEY = 'daruyar_scan_history_v1';
+const HISTORY_CONSENT_KEY = 'pharmaai_history_optin_v1';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('scanner');
+  const [accessChecking, setAccessChecking] = useState(true);
+  const [accessRequired, setAccessRequired] = useState(true);
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [accessEntry, setAccessEntry] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  const [accessError, setAccessError] = useState('');
+  const [accessBusy, setAccessBusy] = useState(false);
+  const [aiDisclosureAccepted, setAiDisclosureAccepted] = useState(false);
+  useEffect(() => {
+    let active = true;
+    fetch('/api/access-status', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('وضعیت امنیتی سرور قابل بررسی نیست.');
+        const data = await response.json();
+        if (active) setAccessRequired(data.required !== false);
+      })
+      .catch(() => { if (active) setAccessError('اتصال به درگاه دسترسی برقرار نیست.'); })
+      .finally(() => { if (active) setAccessChecking(false); });
+    return () => { active = false; };
+  }, []);
+  const handleAccessVerify = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAccessError('');
+    setAccessBusy(true);
+    try {
+      const response = await fetch('/api/access/verify', {
+        method: 'POST',
+        headers: { 'x-pharmaai-access-token': accessEntry },
+        cache: 'no-store',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'اعتبارسنجی رمز دسترسی ناموفق بود.');
+      }
+      setAccessToken(accessEntry);
+      setAccessGranted(true);
+      setAccessEntry('');
+    } catch (error) {
+      setAccessError(error instanceof Error ? error.message : 'خطای اتصال به سرور');
+    } finally { setAccessBusy(false); }
+  };
   const [scanMode, setScanMode] = useState<ScanMode>('prescription');
 
   const [medications, setMedications] = useState<MedicationItem[]>([]);
@@ -54,12 +96,20 @@ export default function App() {
   const [localCatalog, setLocalCatalog] = useState<FormularyDrugRecord[]>(LOCAL_DRUG_FORMULARY);
   const [storageEngine, setStorageEngine] = useState<'indexeddb' | 'memory'>('memory');
 
+  // Existing data is not read without explicit browser opt-in.
+  const [persistHistory, setPersistHistory] = useState(() => {
+    try { return window.localStorage.getItem(HISTORY_CONSENT_KEY) === 'yes'; }
+    catch { return false; }
+  });
+  const [hasStoredHistory, setHasStoredHistory] = useState(() => {
+    try { return Boolean(window.localStorage.getItem(HISTORY_STORAGE_KEY)); }
+    catch { return false; }
+  });
   const [history, setHistory] = useState<ScanSession[]>(() => {
     try {
+      if (window.localStorage.getItem(HISTORY_CONSENT_KEY) !== 'yes') return [];
       return parseScanHistory(window.localStorage.getItem(HISTORY_STORAGE_KEY));
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
 
   useEffect(() => {
@@ -75,12 +125,35 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!persistHistory) return;
     try {
-      window.localStorage.setItem(HISTORY_STORAGE_KEY, serializeScanHistory(history));
-    } catch {
-      // Ignore storage quota errors gracefully
-    }
-  }, [history]);
+      if (history.length > 0) {
+        window.localStorage.setItem(HISTORY_STORAGE_KEY, serializeScanHistory(history));
+        setHasStoredHistory(true);
+      } else {
+        window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+        setHasStoredHistory(false);
+      }
+    } catch { /* Browser storage may be unavailable */ }
+  }, [history, persistHistory]);
+  const handlePersistHistoryChange = (enabled: boolean) => {
+    try {
+      if (enabled) {
+        window.localStorage.setItem(HISTORY_CONSENT_KEY, 'yes');
+        if (history.length > 0) {
+          window.localStorage.setItem(HISTORY_STORAGE_KEY, serializeScanHistory(history));
+        } else {
+          window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+        }
+        setHasStoredHistory(history.length > 0);
+      } else {
+        window.localStorage.removeItem(HISTORY_CONSENT_KEY);
+        window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+        setHasStoredHistory(false);
+      }
+      setPersistHistory(enabled);
+    } catch { setErrorMessage('ذخیره‌سازی مرورگر در این دستگاه قابل استفاده نیست.'); }
+  };
 
   // Always combine AI-returned interactions with deterministic local clinical interaction rules
   const interactions = useMemo(() => {
@@ -217,6 +290,10 @@ export default function App() {
     mimeType: string,
     previewUrl: string
   ) => {
+    if (!aiDisclosureAccepted) {
+      setErrorMessage('پیش از ارسال نسخه یا تصویر به سرویس هوش مصنوعی، اطلاع‌رسانی پردازش ابری را تأیید کنید.');
+      return;
+    }
     setErrorMessage(null);
     setInfoNotice(null);
     setPreviewImageUrl(previewUrl);
@@ -225,7 +302,7 @@ export default function App() {
     try {
       const response = await fetch('/api/analyze-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-pharmaai-access-token': accessToken },
         body: JSON.stringify({
           imageBase64,
           mimeType,
@@ -270,12 +347,20 @@ export default function App() {
       return;
     }
 
+    if (!aiDisclosureAccepted) {
+      if (localMatch) {
+        handleSelectLocalDrug(localMatch, { noticeText: 'بدون ارسال به سرویس ابری؛ نمایش داده محلی و تأییدنشده.' });
+      } else {
+        setErrorMessage('برای استعلام از هوش مصنوعی، ابتدا اطلاع‌رسانی پردازش ابری را تأیید کنید.');
+      }
+      return;
+    }
     setIsAnalyzing(true);
 
     try {
       const response = await fetch('/api/analyze-drugs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-pharmaai-access-token': accessToken },
         body: JSON.stringify({
           query,
           existingDrugNames: medications.map((m) => `${m.genericName} ${m.strength}`),
@@ -377,13 +462,17 @@ export default function App() {
 
   const handleRecheckInteractionsWithAi = async () => {
     if (medications.length < 2) return;
+    if (!aiDisclosureAccepted) {
+      setErrorMessage('برای ارسال نام داروها به سرویس بررسی تداخلات ابری، ابتدا اطلاع‌رسانی را تأیید کنید.');
+      return;
+    }
     setErrorMessage(null);
     setIsCheckingInteractions(true);
 
     try {
       const response = await fetch('/api/check-interactions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-pharmaai-access-token': accessToken },
         body: JSON.stringify({
           drugNames: medications.map((m) => `${m.genericName} ${m.strength} (${m.persianName})`),
         }),
@@ -423,7 +512,36 @@ export default function App() {
 
   const handleClearHistory = () => {
     setHistory([]);
+    try {
+      window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+      setHasStoredHistory(false);
+    } catch { /* Browser storage may be blocked */ }
   };
+
+  if (accessChecking || (accessRequired && !accessGranted)) {
+    return (
+      <div dir="rtl" className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+        <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+          <h1 className="text-xl font-bold text-slate-900">دسترسی داروساز به PharmaAI</h1>
+          {accessChecking ? (
+            <p className="mt-5 text-sm text-slate-600">در حال بررسی وضعیت اتصال امن...</p>
+          ) : (
+            <form onSubmit={handleAccessVerify} className="mt-5 space-y-4">
+              <p className="text-sm text-slate-600">رمز دسترسی تعریف‌شده در تنظیمات سرور را وارد کنید. رمز فقط در حافظه این صفحه نگهداری می‌شود.</p>
+              <label className="block text-sm font-semibold text-slate-700" htmlFor="operator-token">رمز دسترسی داروخانه</label>
+              <input id="operator-token" type="password" autoComplete="off" required
+                value={accessEntry} onChange={(event) => setAccessEntry(event.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-left" dir="ltr" />
+              {accessError && <p role="alert" className="text-sm text-red-700">{accessError}</p>}
+              <button type="submit" disabled={accessBusy} className="w-full rounded-xl bg-teal-700 px-4 py-3 font-bold text-white disabled:opacity-50">
+                {accessBusy ? 'در حال بررسی...' : 'ورود به پنل'}
+              </button>
+            </form>
+          )}
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20 text-slate-900 md:pb-10">
@@ -437,6 +555,32 @@ export default function App() {
         formularyCount={localCatalog.length}
       />
 
+      {accessRequired && (
+        <div className="mx-auto max-w-[1380px] px-4 pt-3" dir="rtl">
+          <button type="button" onClick={() => {
+            setAccessGranted(false);
+            setAccessToken('');
+            handleStartNewPrescription();
+          }} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
+            قفل‌کردن پنل
+          </button>
+        </div>
+      )}
+      <section dir="rtl" className="mx-auto max-w-[1380px] px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-slate-800">
+          <label className="flex items-center gap-2 font-semibold">
+            <input type="checkbox" checked={aiDisclosureAccepted}
+              onChange={(event) => setAiDisclosureAccepted(event.target.checked)}
+              className="h-4 w-4 accent-teal-700" />
+            اطلاع‌رسانی پردازش ابری را خوانده‌ام
+          </label>
+          <p className="mt-1 text-xs leading-6">
+            هنگام استفاده از تحلیل هوش مصنوعی، تصویر نسخه یا نام داروها به سرویس Gemini ارسال می‌شود.
+            پیش از اسکن، نام، شماره تماس و سایر مشخصات هویتی بیمار را حذف کنید.
+            این گزینه فقط برای نشست جاری است و تأیید رضایت بیمار یا مجوز حقوقی محسوب نمی‌شود.
+          </p>
+        </div>
+      </section>
       <main className="mx-auto max-w-[1380px] px-4 pt-6 sm:px-6 lg:px-8">
         {activeTab === 'scanner' && (
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -560,6 +704,9 @@ export default function App() {
             onReopenSession={handleReopenSession}
             onDeleteSession={handleDeleteSession}
             onClearHistory={handleClearHistory}
+            persistHistory={persistHistory}
+            hasStoredHistory={hasStoredHistory}
+            onPersistHistoryChange={handlePersistHistoryChange}
           />
         )}
       </main>
