@@ -98,7 +98,7 @@ function visibleStrengthOnSameLine(e:ReceiptTextEvidence):string|null{
   const line=e.visibleLine.trim();
   const strength=(e.visibleStrength??'').trim();
   if(!line || !strength)return null;
-  const matched=strength.match(STRENGTH_RE);
+  const matched=strength.replace(/[۰-۹٠-٩]/g,ch=>PERSIAN_DIGITS[ch]??ch).match(STRENGTH_RE);
   if(!matched)return null;
   const literal=normalizeReceiptName(strength);
   if(!literal||!normalizeReceiptName(line).includes(literal))return null;
