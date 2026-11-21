@@ -6,6 +6,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { matchIranianPackage, type ObservedPackageText } from './src/utils/iranPackageMatching';
 import { ImageInputError, validateImageInput } from './src/utils/imageInput';
 import { reconcileReceiptDrugText, type ReceiptTextEvidence } from './src/utils/receiptDrugNames';
+import { createFixedWindowLimiter, isAccessRequired, validDrugNames, verifyApiAccess } from './src/utils/apiSecurity';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -345,7 +346,46 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
 
 async function startServer() {
   const app = express();
+  app.disable('x-powered-by');
   app.use(express.json({ limit: '15mb' }));
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
+  const operatorSecret = process.env.PHARMAAI_ACCESS_TOKEN;
+  const environment = process.env.NODE_ENV;
+  const authAttempts = createFixedWindowLimiter(10, 5 * 60_000);
+  const aiRequests = createFixedWindowLimiter(30, 60_000);
+  const callerId = (req: express.Request) => req.socket.remoteAddress || 'unknown';
+
+  app.get('/api/access-status', (_req, res) => {
+    res.json({ required: isAccessRequired(operatorSecret, environment) });
+  });
+  app.post('/api/access/verify', (req, res) => {
+    if (!authAttempts.allow(callerId(req))) {
+      res.setHeader('Retry-After', '300');
+      res.status(429).json({ error: 'تلاش‌های ورود بیش از حد مجاز است.' });
+      return;
+    }
+    if (!verifyApiAccess(req.get('x-pharmaai-access-token'), operatorSecret, environment)) {
+      res.status(401).json({ error: 'رمز دسترسی داروخانه نامعتبر است.' });
+      return;
+    }
+    res.json({ ok: true });
+  });
+  // The production API fails closed without a properly configured token.
+  app.use('/api', (req, res, next) => {
+    if (!verifyApiAccess(req.get('x-pharmaai-access-token'), operatorSecret, environment)) {
+      res.status(401).json({ error: 'دسترسی به سرویس نیازمند رمز معتبر داروخانه است.' });
+      return;
+    }
+    if (!aiRequests.allow(callerId(req))) {
+      res.setHeader('Retry-After', '60');
+      res.status(429).json({ error: 'سقف درخواست‌های تحلیل تکمیل شده است.' });
+      return;
+    }
+    next();
+  });
 
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true });
@@ -354,6 +394,10 @@ async function startServer() {
   app.post('/api/analyze-image', async (req, res) => {
     try {
       const { imageBase64, mimeType, scanMode = 'auto', existingDrugNames = [] } = req.body ?? {};
+      if (!validDrugNames(existingDrugNames) || !['auto', 'prescription', 'box'].includes(scanMode)) {
+        res.status(400).json({ error: 'مشخصات نسخه یا حالت اسکن معتبر نیست.' });
+        return;
+      }
       let validatedImage;
       try {
         validatedImage = validateImageInput(imageBase64, mimeType);
@@ -415,7 +459,7 @@ async function startServer() {
   app.post('/api/analyze-drugs', async (req, res) => {
     try {
       const { query, existingDrugNames = [] } = req.body ?? {};
-      if (!query || typeof query !== 'string' || query.trim().length < 2) {
+      if (!validDrugNames(existingDrugNames) || !query || typeof query !== 'string' || query.trim().length < 2 || query.length > 120) {
         res.status(400).json({ error: 'لطفاً نام معتبر دارو را وارد کنید.' });
         return;
       }
@@ -449,7 +493,7 @@ async function startServer() {
   app.post('/api/check-interactions', async (req, res) => {
     try {
       const { drugNames = [] } = req.body ?? {};
-      if (!Array.isArray(drugNames) || drugNames.length < 2) {
+      if (!validDrugNames(drugNames, 2)) {
         res.status(400).json({ error: 'برای بررسی تداخل حداقل دو دارو لازم است.' });
         return;
       }
