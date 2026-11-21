@@ -231,6 +231,19 @@ export function PrescriptionBasket({
                         <span className="text-sm font-bold text-slate-900">
                           {med.persianName}
                         </span>
+                        {med.receiptResolution && (
+                          <span className="mt-1 block w-full text-[11px] leading-5 text-slate-600">
+                            OCR: {med.receiptEvidence?.visibleLine || 'خط نامشخص'}
+                            {' · '}
+                            {med.receiptResolution.status === 'name-candidate'
+                              ? 'نام پیشنهادی؛ تأیید داروساز لازم'
+                              : 'نام مبهم یا نامعتبر؛ نیازمند بررسی'}
+                            {' · '}
+                            {med.receiptResolution.explicitStrength
+                              ? 'قدرت مشاهده‌شده: '+med.receiptResolution.explicitStrength
+                              : 'قدرت روی رسید تأیید نشده'}
+                          </span>
+                        )}
                         <span className="font-latin text-xs font-medium text-slate-500">
                           {med.genericName}
                         </span>
