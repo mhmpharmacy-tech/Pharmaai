@@ -33,9 +33,9 @@ interface CameraScannerPanelProps {
 }
 
 const MODE_OPTIONS: { value: ScanMode; label: string }[] = [
+  { value: 'prescription', label: 'متن فیش / رسید' },
   { value: 'auto', label: 'تشخیص خودکار' },
-  { value: 'prescription', label: 'فیش / نسخه' },
-  { value: 'box', label: 'جلد دارو' },
+  { value: 'box', label: 'عکس بسته (بعداً)' },
 ];
 
 export function CameraScannerPanel({
@@ -189,10 +189,10 @@ export function CameraScannerPanel({
       <div className="space-y-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900 sm:text-xl">
-            اسکن سریع نسخه یا جلد دارو
+            تشخیص نام دارو از متن فیش / رسید
           </h1>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            از نسخه یا جعبه دارو عکس بگیرید. در حالت بسته‌بندی، نام برند، قدرت، شکل دارویی و سازنده با نمونه‌های کاتالوگ ایران تطبیق آزمایشی می‌شوند؛ نتیجه جایگزین استعلام TTAC یا تأیید داروساز نیست.
+            برای MVP، از فیش داروخانه یا نسخه چاپی عکس بگیرید: نام‌های خوانا مثل «قرص دومپریدون» به ژنریک پیشنهادی تبدیل می‌شوند. اگر قدرت، تعداد یا دستور مصرف روی فیش نیست، حدس نمی‌زنیم. تصویر جعبه در این مرحله ضروری نیست؛ نتیجه باید توسط داروساز بازبینی شود.
           </p>
         </div>
 
