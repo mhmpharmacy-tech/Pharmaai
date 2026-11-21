@@ -277,8 +277,6 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
         const receiptEvidence = isReceipt ? sanitizeReceiptTextEvidence(m.receiptEvidence) : undefined;
         const receiptResolution = receiptEvidence ? reconcileReceiptDrugText(receiptEvidence) : undefined;
         const knownRegimen = receiptEvidence?.visibleRegimen ?? '';
-        const originalDosing = m.dosing && typeof m.dosing==='object' && !Array.isArray(m.dosing)
-          ? m.dosing as object : {};
         return {
           ...m,
           id: typeof m.id === 'string' && m.id.trim() ? m.id : ['ai-med',Date.now(),idx].join('-'),
@@ -292,7 +290,18 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
             brandName: '',
             receiptEvidence,
             receiptResolution,
-            dosing: { ...originalDosing, prescribedRegimen:knownRegimen },
+            dosing: {
+              adultDose:'',pediatricDose:'',maxDailyDose:'',
+              renalHepaticAdjustment:'',prescribedRegimen:knownRegimen,
+            },
+            safety: {
+              criticalWarnings:[],pregnancyLactation:'',commonSideEffects:[],
+              monitoring:[],highAlert:false,
+            },
+            usage: {
+              withFood:'',timing:'',dosageFormsAndVariations:[],
+              patientCounseling:[],missedDose:'',
+            },
           } : {}),
           ...(isBox ? { packagingEvidence: evidence, packagingResolution: matching } : {
             packagingEvidence: undefined, packagingResolution: undefined,
@@ -322,15 +331,15 @@ function sanitizeNormalizedPayload(raw: Record<string, unknown>, fallbackSource:
 
   return {
     detectedSourceType: detectedSource,
-    clinicalSummary:
-      `${typeof raw.clinicalSummary === 'string' ? raw.clinicalSummary : 'تحلیل انجام شد.'}` +
-      (detectedSource === 'box'
-        ? ` تطبیق آزمایشی کاتالوگ ایران: ${matches} مورد مشابه یافت شد. ${unsafe ? 'برخی مشخصات نیازمند بررسی مجدد هستند. ' : ''}هیچ موردی صرفاً با اسکن عکس از نظر اصالت/مجوز IRC تأیید نمی‌شود.`
-        : detectedSource === 'prescription'
-          ? ' MVP فیش: استخراج نام دارو از متن است، نه تشخیص عکس بسته‌بندی. قدرت و مقدارهای غایب خالی مانده‌اند؛ ' + receiptsToReview + ' قلم نامشخص/مبهم نیازمند بازبینی است.'
+    clinicalSummary:detectedSource==='prescription'
+      ? 'نتیجه اولیه OCR فیش: '+medications.length+' قلم خوانده شد. '+receiptsToReview+
+        ' مورد مبهم/نامشخص است. این گزارش فقط برای تشخیص نام است؛ دوز، قدرت و دستور مصرف غایب حدس زده نمی‌شوند و تمام موارد باید بررسی شوند.'
+      : (typeof raw.clinicalSummary === 'string' ? raw.clinicalSummary : 'تحلیل انجام شد.')+
+        (detectedSource === 'box'
+          ? ' تطبیق آزمایشی کاتالوگ ایران: '+matches+' مورد مشابه یافت شد. '+(unsafe?'برخی مشخصات نیازمند بررسی مجدد هستند. ':'')+'هیچ موردی صرفاً با اسکن عکس از نظر اصالت/مجوز IRC تأیید نمی‌شود.'
           : ''),
     medications,
-    interactions,
+    interactions:detectedSource==='prescription'?[]:interactions,
   };
 }
 
